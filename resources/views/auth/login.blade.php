@@ -8,19 +8,44 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <style>
         body {
-            background: linear-gradient(135deg, #1b2a4e 0%, #2c3e6b 100%);
+            background: #941f3c;
             min-height: 100vh;
         }
         .login-card { border: none; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+        .login-logo {
+                width: 200px;
+                max-width: 100%;
+                height: auto;
+                object-fit: contain;
+                border-radius: 12px;
+            }
+
+            .login-department {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 5px;
+            }
+
+            .login-system-name {
+                font-size: 18px;
+                color: #6c757d;
+                margin-bottom: 0;
+            }
     </style>
 </head>
 <body class="d-flex align-items-center justify-content-center">
 <div class="card login-card p-4" style="width: 380px;">
-    <div class="text-center mb-4">
-        <i class="bi bi-hdd-network fs-1 text-primary"></i>
-        <h5 class="fw-bold mt-2 mb-0">IT BREAKDOWN</h5>
-        <small class="text-muted">Management System</small>
-    </div>
+<div class="text-center mb-4">
+    <img src="{{ asset('images/logo.png') }}"
+         alt="Western Provincial Council"
+         class="login-logo">
+
+    <!-- <h3 class="login-department mt-3">IT Department</h3> -->
+
+    <p class="login-system-name">
+        Breakdown Management System
+    </p>
+</div>
 
     @if($errors->any())
         <div class="alert alert-danger py-2 small">
@@ -47,7 +72,7 @@
 
     <hr>
     <div class="small text-muted">
-        <strong>Demo accounts</strong> (password: <code>password123</code>)<br>
+        <strong>Demo accounts</strong> (password: <code>123456</code>)<br>
         IT Head: <code>ithead</code><br>
         Assign Officer: <code>assignofficer</code><br>
         Technical Officer: <code>techofficer</code><br>

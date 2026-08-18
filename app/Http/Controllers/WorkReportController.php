@@ -11,6 +11,39 @@ use Illuminate\Support\Facades\Auth;
 
 class WorkReportController extends Controller
 {
+    public function startWork(OfficerAssignment $officerAssignment)
+    {
+        $user = Auth::user();
+
+        abort_unless(
+            $user->isTechnicalOfficer()
+            && $officerAssignment->technical_officer_id === $user->id,
+            403
+        );
+
+        if ($officerAssignment->status !== 'Pending') {
+            return back()->with('error', 'This job has already been started.');
+        }
+
+        $officerAssignment->update([
+            'status' => 'In Progress',
+        ]);
+
+        $breakdownRequest = $officerAssignment->assignment->request;
+
+        $breakdownRequest->update([
+            'status' => 'In Progress',
+        ]);
+
+        ActivityLog::log(
+            $breakdownRequest->id,
+            $user->id,
+            'Started work',
+            'Technical Officer started working on the breakdown.'
+        );
+
+        return back()->with('success', 'Work started successfully.');
+    }
     /**
      * Step 4: Technical Officer visits, fixes the issue, and files a work report.
      */

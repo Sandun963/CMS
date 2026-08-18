@@ -19,7 +19,7 @@
 
         /* IT Head / Admin */
         .sidebar-admin {
-            background: linear-gradient(180deg, #a80000 0%, #d00000 100%);
+            background: linear-gradient(180deg, #7a1830 0%, #941e3b 100%);
         }
 
         /* Assign Officer */
@@ -37,19 +37,42 @@
             background: linear-gradient(180deg, #3f1d73 0%, #6f38ad 100%);
         }
 
+        /* Normal menu items */
         .sidebar .nav-link {
-            color: #cfd8ea;
-            border-radius: 6px;
-            margin-bottom: 2px;
+            color: rgba(255, 255, 255, 0.90);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            transition: all 0.2s ease;
         }
-        .sidebar .nav-link.active, .sidebar .nav-link:hover {
-            background: rgba(255,255,255,0.12);
-            color: #fff;
+
+        /* Selected menu item */
+        .sidebar .nav-link.active {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Mouse hover */
+        .sidebar .nav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.10);
         }
         .sidebar-brand {
             font-weight: 700;
             font-size: 1.05rem;
             border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .sidebar-logo {
+            width: 200px;
+            height: auto;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .sidebar-brand-text {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
         }
         .stat-card { border: none; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
         .badge-status { font-size: 0.75rem; }
@@ -75,9 +98,14 @@
     }
 @endphp
     <nav class="sidebar {{ $sidebarClass }} p-3" style="width: 240px;">
-        <div class="sidebar-brand pb-3 mb-3 d-flex align-items-center gap-2">
-            <i class="bi bi-hdd-network fs-4"></i>
-            <div>IT BREAKDOWN<br><small class="fw-normal">MANAGEMENT SYSTEM</small></div>
+        <div class="sidebar-brand pb-3 mb-3 text-center">
+            <img src="{{ asset('images/logo.png') }}"
+                alt="IT Department Logo"
+                class="sidebar-logo mb-2">
+
+            <div class="sidebar-brand-text">
+                IT Department
+            </div>
         </div>
         <ul class="nav nav-pills flex-column gap-1">
             <li class="nav-item">

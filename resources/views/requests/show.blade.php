@@ -100,8 +100,49 @@
         </div>
         @endif
 
-        {{-- STEP 4: Technical Officer files work report --}}
-        @if($user->isTechnicalOfficer() && $latestOfficerAssignment && $latestOfficerAssignment->technical_officer_id === $user->id && $latestOfficerAssignment->status !== 'Done')
+        {{-- STEP 4: Technical Officer starts and completes work --}}
+        @if(
+            $user->isTechnicalOfficer()
+            && $latestOfficerAssignment
+            && $latestOfficerAssignment->technical_officer_id === $user->id
+            && $latestOfficerAssignment->status !== 'Done'
+        )
+
+            {{-- Start Work button --}}
+            @if($latestOfficerAssignment->status === 'Pending')
+
+            <div class="card stat-card mb-3 border-start border-4 border-success">
+
+                <div class="card-header bg-white">
+                    <strong>Step 4 — Start Assigned Job</strong>
+                </div>
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-3">
+                        This breakdown has been assigned to you.
+                        Click the button below when you start working on it.
+                    </p>
+
+                    <form method="POST"
+                        action="{{ route('work-reports.start', $latestOfficerAssignment) }}">
+
+                        @csrf
+
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-play-fill me-1"></i>
+                            Start Work
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+            @endif
+
+
+        @if($latestOfficerAssignment->status === 'In Progress')   
         <div class="card stat-card mb-3 border-start border-4 border-info">
             <div class="card-header bg-white"><strong>Step 4 — Resolve Breakdown / File Work Report</strong></div>
             <div class="card-body">
@@ -140,6 +181,7 @@
                 </form>
             </div>
         </div>
+        @endif
         @endif
 
         {{-- STEP 5: Ministry User verifies & closes --}}

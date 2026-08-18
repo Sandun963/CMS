@@ -22,14 +22,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-2">
-            <select name="priority" class="form-select form-select-sm">
-                <option value="">All Priorities</option>
-                @foreach(['Low','Medium','High'] as $p)
-                <option value="{{ $p }}" @selected(request('priority') === $p)>{{ $p }}</option>
-                @endforeach
-            </select>
-        </div>
+
         @if(!auth()->user()->isMinistryUser())
         <div class="col-md-3">
             <select name="department_id" class="form-select form-select-sm">

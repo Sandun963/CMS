@@ -43,9 +43,19 @@ Route::middleware('auth')->group(function () {
         Route::post('/assignments/{assignment}/forward', [OfficerAssignmentController::class, 'store'])->name('officer-assignments.store');
     });
 
-    // Step 4: Technical Officer files work report
+    // Step 4: Technical Officer starts work and files work report
     Route::middleware('role:technical_officer')->group(function () {
-        Route::post('/officer-assignments/{officerAssignment}/report', [WorkReportController::class, 'store'])->name('work-reports.store');
+
+        Route::post(
+            '/officer-assignments/{officerAssignment}/start',
+            [WorkReportController::class, 'startWork']
+        )->name('work-reports.start');
+
+        Route::post(
+            '/officer-assignments/{officerAssignment}/report',
+            [WorkReportController::class, 'store']
+        )->name('work-reports.store');
+
     });
 
     // Step 5: Ministry User verifies & closes
