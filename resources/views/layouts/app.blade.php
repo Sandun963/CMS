@@ -134,7 +134,11 @@
 
     <div class="flex-grow-1">
         <nav class="navbar navbar-top px-4 py-2 d-flex justify-content-between">
-            <div class="fw-semibold text-muted">@yield('title', 'Dashboard')</div>
+            <div class="fw-semibold text-muted">
+                <span id="navbar-date"></span>
+                <span class="mx-2">|</span>
+                <span id="navbar-time"></span>
+            </div>
             <div class="d-flex align-items-center gap-3">
                 @auth
                 <span class="text-muted small">
@@ -169,5 +173,29 @@
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function updateNavbarDateTime() {
+        const now = new Date();
+
+        const date = now.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        });
+
+        const time = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        document.getElementById('navbar-date').textContent = date;
+        document.getElementById('navbar-time').textContent = time;
+    }
+
+    updateNavbarDateTime();
+
+    setInterval(updateNavbarDateTime, 1000);
+</script>
 </body>
 </html>
