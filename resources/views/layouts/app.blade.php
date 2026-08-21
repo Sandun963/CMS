@@ -10,11 +10,54 @@
         :root {
             --brand-red: #c0392b;
             --brand-navy: #1b2a4e;
+
+            --sidebar-width: 240px;
+            --navbar-height: 64px;
         }
-        body { background: #f4f6f9; }
+
+        body {
+            background: #f4f6f9;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Fixed left sidebar */
         .sidebar {
-            min-height: 100vh;
-            color: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
+
+            width: var(--sidebar-width);
+            height: 100vh;
+
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        /* Fixed top navbar */
+        .navbar-top {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+
+            height: var(--navbar-height);
+
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+
+            z-index: 999;
+        }
+
+        /* Area containing navbar + page */
+        .content-wrapper {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        /* Page content must start under fixed navbar */
+        .main-content {
+            margin-top: var(--navbar-height);
         }
 
         /* IT Head / Admin */
@@ -77,7 +120,6 @@
         .stat-card { border: none; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
         .badge-status { font-size: 0.75rem; }
         .table thead th { background: #eef1f6; font-size: 0.82rem; text-transform: uppercase; letter-spacing: .03em; }
-        .navbar-top { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
     </style>
 </head>
 <body>
@@ -97,7 +139,7 @@
         }
     }
 @endphp
-    <nav class="sidebar {{ $sidebarClass }} p-3" style="width: 240px;">
+    <nav class="sidebar {{ $sidebarClass }} p-3">
         <div class="sidebar-brand pb-3 mb-3 text-center">
             <img src="{{ asset('images/logo.png') }}"
                 alt="IT Department Logo"
@@ -132,7 +174,7 @@
         </ul>
     </nav>
 
-    <div class="flex-grow-1">
+    <div class="flex-grow-1 content-wrapper">
         <nav class="navbar navbar-top px-4 py-2 d-flex justify-content-between">
             <div class="fw-semibold text-muted">
                 <span id="navbar-date"></span>
@@ -153,7 +195,7 @@
             </div>
         </nav>
 
-        <main class="p-4">
+        <main class="p-4 main-content">
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show">{{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>

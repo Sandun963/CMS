@@ -55,8 +55,27 @@ class BreakdownRequestController extends Controller
 
     public function create()
     {
-        $categories = Category::where('is_active', true)->orderBy('name')->get();
-        return view('requests.create', compact('categories'));
+        $categories = Category::where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $ministries = Department::where('is_active', true)
+            ->whereNotNull('ministry_name')
+            ->where('ministry_name', '!=', '')
+            ->select('ministry_name')
+            ->distinct()
+            ->orderBy('ministry_name')
+            ->pluck('ministry_name');
+
+        $departments = Department::where('is_active', true)
+            ->whereNotNull('ministry_name')
+            ->orderBy('name')
+            ->get(['id', 'name', 'ministry_name']);
+
+        return view(
+            'requests.create',
+            compact('categories', 'ministries', 'departments')
+        );
     }
 
     public function store(Request $request)
@@ -67,18 +86,18 @@ class BreakdownRequestController extends Controller
             'category_id' => ['nullable', 'exists:categories,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
-            'location' => ['nullable', 'string', 'max:255'],
+            'ministry_name' => ['required', 'string', 'max:255'],
+            'department_id' => ['required', 'exists:departments,id'],
             'attachments.*' => ['nullable', 'file', 'max:5120', 'mimes:jpg,jpeg,png,pdf'],
         ]);
 
         $breakdown = BreakdownRequest::create([
             'request_number' => $this->generateRequestNumber(),
-            'department_id' => $user->department_id,
+            'department_id' => $data['department_id'],
             'requested_by' => $user->id,
             'category_id' => $data['category_id'] ?? null,
             'title' => $data['title'],
             'description' => $data['description'],
-            'location' => $data['location'] ?? null,
             'status' => 'New',
             'received_at' => now(),
         ]);

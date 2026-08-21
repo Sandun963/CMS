@@ -26,10 +26,28 @@
             <div class="card-body">
                 <h6>{{ $breakdownRequest->title }}</h6>
                 <p class="mb-2">{{ $breakdownRequest->description }}</p>
-                <div class="row small text-muted">
-                    <div class="col-md-4"><strong>Category:</strong> {{ $breakdownRequest->category->name ?? '-' }}</div>
-                    <div class="col-md-4"><strong>Location:</strong> {{ $breakdownRequest->location ?? '-' }}</div>
-                </div>
+                    <div class="row small text-muted">
+
+                        <div class="row small text-muted">
+
+                                {{-- Category --}}
+                                <div class="col-md-4">
+                                    <strong class="d-block mb-1">Category:</strong><span>{{ $breakdownRequest->category->name ?? '-' }}</span>
+                                </div>
+
+                                {{-- Ministry --}}
+                                <div class="col-md-4">
+                                    <strong class="d-block mb-1">Ministry:</strong><span>{{ $breakdownRequest->department->ministry_name ?? '-' }}</span>
+                                </div>
+
+                                {{-- Department --}}
+                                <div class="col-md-4">
+                                    <strong class="d-block mb-1">Department:</strong><span>{{ $breakdownRequest->department->name ?? '-' }}</span>
+                                </div>
+
+                            </div>
+
+                    </div>  
                 @if($breakdownRequest->attachments->count())
                 <hr>
                 <div class="small fw-semibold mb-1">Attachments</div>

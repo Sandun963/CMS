@@ -8,7 +8,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <style>
         body {
-            background: #941f3c;
+                background-image: linear-gradient(
+                rgba(255, 255, 255, 0.35),
+                rgba(255, 255, 255, 0.35)
+            ),
+            url('{{ asset("images/bg.jpg") }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
         }
         .login-card { border: none; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
@@ -76,7 +84,8 @@
         IT Head: <code>ithead</code><br>
         Assign Officer: <code>assignofficer</code><br>
         Technical Officer: <code>techofficer</code><br>
-        Ministry User: <code>deptuser</code>
+        Ministry User: <code>rural</code>
+        Ministry User: <code>roads</code>
     </div>
 </div>
 </body>

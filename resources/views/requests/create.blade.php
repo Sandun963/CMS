@@ -29,12 +29,50 @@
         </div>
 
         <div class="row">
+
+            {{-- Ministry --}}
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-semibold">Location</label>
-                <input type="text" name="location" class="form-control" value="{{ old('location') }}" placeholder="e.g. Room 204, 3rd Floor">
+                <label class="form-label fw-semibold">
+                    Ministry <span class="text-danger">*</span>
+                </label>
+
+                <select
+                    name="ministry_name"
+                    id="ministrySelect"
+                    class="form-select"
+                    required
+                >
+                    <option value="">Select Ministry</option>
+
+                    @foreach($ministries as $ministry)
+                        <option
+                            value="{{ $ministry }}"
+                            @selected(old('ministry_name') === $ministry)
+                        >
+                            {{ $ministry }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
+
+
+            {{-- Department --}}
             <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">
+                    Department <span class="text-danger">*</span>
+                </label>
+
+                <select
+                    name="department_id"
+                    id="departmentSelect"
+                    class="form-select"
+                    required
+                    disabled
+                >
+                    <option value="">Select Ministry First</option>
+                </select>
             </div>
+
         </div>
 
         <div class="mb-3">
@@ -48,4 +86,58 @@
     </form>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const ministrySelect = document.getElementById('ministrySelect');
+    const departmentSelect = document.getElementById('departmentSelect');
+
+    const departments = @json($departments);
+
+    const oldDepartmentId = "{{ old('department_id') }}";
+
+    function loadDepartments() {
+
+        const selectedMinistry = ministrySelect.value;
+
+        departmentSelect.innerHTML =
+            '<option value="">Select Department</option>';
+
+        if (!selectedMinistry) {
+            departmentSelect.disabled = true;
+            departmentSelect.innerHTML =
+                '<option value="">Select Ministry First</option>';
+
+            return;
+        }
+
+        const filteredDepartments = departments.filter(function (department) {
+            return department.ministry_name === selectedMinistry;
+        });
+
+        filteredDepartments.forEach(function (department) {
+
+            const option = document.createElement('option');
+
+            option.value = department.id;
+            option.textContent = department.name;
+
+            if (String(department.id) === String(oldDepartmentId)) {
+                option.selected = true;
+            }
+
+            departmentSelect.appendChild(option);
+        });
+
+        departmentSelect.disabled = false;
+    }
+
+    ministrySelect.addEventListener('change', loadDepartments);
+
+    if (ministrySelect.value) {
+        loadDepartments();
+    }
+
+});
+</script>
 @endsection

@@ -36,7 +36,7 @@
                         @if($u->is_active)<span class="badge bg-success">Active</span>@else<span class="badge bg-secondary">Inactive</span>@endif
                     </td>
                     <td>
-                        <a href="{{ route('users.edit', $u) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a href="{{ route('users.edit', $u) }}" class="btn btn-sm btn-outline-primary mb-2">Edit</a>
                         @if($u->is_active)
                         <form method="POST" action="{{ route('users.destroy', $u) }}" class="d-inline" onsubmit="return confirm('Deactivate this user?')">
                             @csrf @method('DELETE')
