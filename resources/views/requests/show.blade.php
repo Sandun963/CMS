@@ -58,67 +58,113 @@
             </div>
         </div>
 
-        {{-- STEP 2: IT Head assigns to Assign Officer --}}
-        @if($user->isItHead() && in_array($breakdownRequest->status, ['New', 'Reopened']))
-        <div class="card stat-card mb-3 border-start border-4 border-danger">
-            <div class="card-header bg-white"><strong>Step 2 — Review & Assign to Officer</strong></div>
-            <div class="card-body">
-                <form method="POST" action="{{ route('assignments.store', $breakdownRequest) }}">
-                    @csrf
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <label class="form-label small">Assign Officer</label>
-                            <select name="assign_officer_id" class="form-select" required>
-                                <option value="">Select officer</option>
-                                @foreach($assignOfficers as $o)
-                                <option value="{{ $o->id }}">{{ $o->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small">Note (optional)</label>
-                            <input type="text" name="note" class="form-control">
-                        </div>
-                    </div>
-                    <button class="btn btn-primary btn-sm mt-3"><i class="bi bi-send me-1"></i>Assign</button>
-                </form>
-            </div>
-        </div>
-        @endif
+{{-- STEP 2: Assign Officer directly assigns Technical Officer --}}
+        @if(
+            $user->isAssignOfficer()
+            && in_array($breakdownRequest->status, ['New', 'Reopened'])
+        )
 
-        {{-- STEP 3: Assign Officer forwards to Technical Officer --}}
-        @if($user->isAssignOfficer() && $latestAssignment && $latestAssignment->assign_officer_id === $user->id && $latestAssignment->status === 'Pending')
-        <div class="card stat-card mb-3 border-start border-4 border-success">
-            <div class="card-header bg-white"><strong>Step 3 — Assign Technical Officer</strong></div>
+        <div class="card stat-card mb-3 border-start border-4 border-primary">
+
+            <div class="card-header bg-white">
+                <strong>Assign Technical Officer</strong>
+            </div>
+
             <div class="card-body">
-                <form method="POST" action="{{ route('officer-assignments.store', $latestAssignment) }}">
+
+                <form
+                    method="POST"
+                    action="{{ route('officer-assignments.store', $breakdownRequest) }}"
+                >
+
                     @csrf
+
                     <div class="row g-2">
+
                         <div class="col-md-5">
-                            <label class="form-label small">Technical Officer</label>
-                            <select name="technical_officer_id" class="form-select" required>
-                                <option value="">Select technician</option>
+
+                            <label class="form-label small">
+                                Technical Officer
+                            </label>
+
+                            <select
+                                name="technical_officer_id"
+                                class="form-select"
+                                required
+                            >
+
+                                <option value="">
+                                    Select technician
+                                </option>
+
                                 @foreach($technicalOfficers as $t)
-                                <option value="{{ $t->id }}">{{ $t->name }} @if($t->specialty)({{ $t->specialty }})@endif</option>
+
+                                    <option value="{{ $t->id }}">
+                                        {{ $t->name }}
+
+                                        @if($t->specialty)
+                                            ({{ $t->specialty }})
+                                        @endif
+                                    </option>
+
                                 @endforeach
+
                             </select>
+
                         </div>
+
+
                         <div class="col-md-3">
-                            <label class="form-label small">Due Date (optional)</label>
-                            <input type="date" name="due_date" class="form-control">
+
+                            <label class="form-label small">
+                                Due Date (optional)
+                            </label>
+
+                            <input
+                                type="date"
+                                name="due_date"
+                                class="form-control"
+                            >
+
                         </div>
+
+
                         <div class="col-md-4">
-                            <label class="form-label small">Note (optional)</label>
-                            <input type="text" name="note" class="form-control">
+
+                            <label class="form-label small">
+                                Note (optional)
+                            </label>
+
+                            <input
+                                type="text"
+                                name="note"
+                                class="form-control"
+                            >
+
                         </div>
+
                     </div>
-                    <button class="btn btn-success btn-sm mt-3"><i class="bi bi-send me-1"></i>Forward to Technician</button>
+
+
+                    <button
+                        class="btn btn-primary btn-sm mt-3"
+                    >
+
+                        <i class="bi bi-send me-1"></i>
+
+                        Assign Technical Officer
+
+                    </button>
+
                 </form>
+
             </div>
+
         </div>
+
         @endif
 
-        {{-- STEP 4: Technical Officer starts and completes work --}}
+        {{-- STEP 3: Technical Officer starts and completes work --}}
         @if(
             $user->isTechnicalOfficer()
             && $latestOfficerAssignment
@@ -132,7 +178,7 @@
             <div class="card stat-card mb-3 border-start border-4 border-success">
 
                 <div class="card-header bg-white">
-                    <strong>Step 4 — Start Assigned Job</strong>
+                    <strong>Step 3 — Start Assigned Job</strong>
                 </div>
 
                 <div class="card-body">
@@ -162,7 +208,7 @@
 
         @if($latestOfficerAssignment->status === 'In Progress')   
         <div class="card stat-card mb-3 border-start border-4 border-info">
-            <div class="card-header bg-white"><strong>Step 4 — Resolve Breakdown / File Work Report</strong></div>
+            <div class="card-header bg-white"><strong>Step 3 — Resolve Breakdown / File Work Report</strong></div>
             <div class="card-body">
                 <form method="POST" action="{{ route('work-reports.store', $latestOfficerAssignment) }}" enctype="multipart/form-data">
                     @csrf
@@ -205,7 +251,7 @@
         {{-- STEP 5: Ministry User verifies & closes --}}
         @if($user->isMinistryUser() && $breakdownRequest->requested_by === $user->id && $breakdownRequest->status === 'Resolved' && $latestWorkReport && !$latestWorkReport->confirmation)
         <div class="card stat-card mb-3 border-start border-4 border-primary">
-            <div class="card-header bg-white"><strong>Step 5 — Verify & Close</strong></div>
+            <div class="card-header bg-white"><strong>Step 4 — Verify & Close</strong></div>
             <div class="card-body">
                 <p class="small text-muted">The technician reported this as resolved. Please confirm.</p>
                 <form method="POST" action="{{ route('confirmations.store', $latestWorkReport) }}">

@@ -41,25 +41,59 @@ class DashboardController extends Controller
 
     protected function assignOfficerDashboard($user)
     {
+        $newRequests = BreakdownRequest::with('department')
+            ->whereIn('status', ['New', 'Reopened'])
+            ->latest();
+
         $assignmentIds = $user->assignmentsAsOfficer()->pluck('id');
 
         $counts = [
-            'pending' => \App\Models\Assignment::where('assign_officer_id', $user->id)->where('status', 'Pending')->count(),
-            'in_progress' => \App\Models\OfficerAssignment::whereIn('assignment_id', $assignmentIds)->where('status', 'In Progress')->count(),
-            'completed' => \App\Models\OfficerAssignment::whereIn('assignment_id', $assignmentIds)->where('status', 'Done')->count(),
-            'overdue' => \App\Models\OfficerAssignment::whereIn('assignment_id', $assignmentIds)
-                ->where('status', '!=', 'Done')
-                ->whereDate('due_date', '<', now())
-                ->count(),
+            'pending' => (clone $newRequests)->count(),
+
+            'in_progress' => \App\Models\OfficerAssignment::whereIn(
+                'assignment_id',
+                $assignmentIds
+            )
+            ->where('status', 'In Progress')
+            ->count(),
+
+            'completed' => \App\Models\OfficerAssignment::whereIn(
+                'assignment_id',
+                $assignmentIds
+            )
+            ->where('status', 'Done')
+            ->count(),
+
+            'overdue' => \App\Models\OfficerAssignment::whereIn(
+                'assignment_id',
+                $assignmentIds
+            )
+            ->where('status', '!=', 'Done')
+            ->whereDate('due_date', '<', now())
+            ->count(),
         ];
 
-        $myAssignments = \App\Models\Assignment::with(['request.department', 'latestOfficerAssignment.technicalOfficer'])
+        $pendingRequests = $newRequests
+            ->limit(10)
+            ->get();
+
+        $myAssignments = \App\Models\Assignment::with([
+            'request.department',
+            'latestOfficerAssignment.technicalOfficer'
+        ])
             ->where('assign_officer_id', $user->id)
             ->latest()
             ->limit(10)
             ->get();
 
-        return view('dashboard.assign_officer', compact('counts', 'myAssignments'));
+        return view(
+            'dashboard.assign_officer',
+            compact(
+                'counts',
+                'pendingRequests',
+                'myAssignments'
+            )
+        );
     }
 
     protected function technicalOfficerDashboard($user)

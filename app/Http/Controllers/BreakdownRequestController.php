@@ -28,8 +28,18 @@ class BreakdownRequestController extends Controller
         } elseif ($user->isTechnicalOfficer()) {
             $query->where('assigned_to', $user->id);
         } elseif ($user->isAssignOfficer()) {
-            $assignmentRequestIds = $user->assignmentsAsOfficer()->pluck('request_id');
-            $query->whereIn('id', $assignmentRequestIds);
+
+            $query->where(function ($q) use ($user) {
+
+                // New and reopened requests are available for assignment
+                $q->whereIn('status', ['New', 'Reopened'])
+
+                // Also show requests previously handled by this Assign Officer
+                ->orWhereHas('assignments', function ($assignmentQuery) use ($user) {
+                    $assignmentQuery->where('assign_officer_id', $user->id);
+                });
+
+            });
         }
         // IT Head sees everything.
 
@@ -138,7 +148,18 @@ class BreakdownRequestController extends Controller
         if ($user->isItHead()) return;
         if ($user->isMinistryUser() && $breakdownRequest->requested_by === $user->id) return;
         if ($user->isTechnicalOfficer() && $breakdownRequest->assigned_to === $user->id) return;
-        if ($user->isAssignOfficer() && $breakdownRequest->assignments()->where('assign_officer_id', $user->id)->exists()) return;
+        if ($user->isAssignOfficer()) {
+                if (in_array($breakdownRequest->status, ['New', 'Reopened'])) {
+                    return;
+                }
+                if (
+                    $breakdownRequest->assignments()
+                        ->where('assign_officer_id', $user->id)
+                        ->exists()
+                ) {
+                    return;
+                }
+            }
 
         abort(403, 'You do not have access to this request.');
     }

@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\BreakdownRequestController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentConfirmationController;
@@ -34,13 +33,16 @@ Route::middleware('auth')->group(function () {
     });
 
     // Step 2: IT Head assigns to Assign Officer
-    Route::middleware('role:it_head')->group(function () {
-        Route::post('/requests/{breakdownRequest}/assign', [AssignmentController::class, 'store'])->name('assignments.store');
-    });
+
 
     // Step 3: Assign Officer forwards to Technical Officer
     Route::middleware('role:assign_officer')->group(function () {
-        Route::post('/assignments/{assignment}/forward', [OfficerAssignmentController::class, 'store'])->name('officer-assignments.store');
+
+        Route::post(
+            '/requests/{breakdownRequest}/assign-technician',
+            [OfficerAssignmentController::class, 'store']
+        )->name('officer-assignments.store');
+
     });
 
     // Step 4: Technical Officer starts work and files work report
@@ -65,8 +67,20 @@ Route::middleware('auth')->group(function () {
 
     // IT Head admin: users, departments, reports
     Route::middleware('role:it_head')->group(function () {
+
         Route::resource('users', UserController::class)->except(['show']);
+
         Route::resource('departments', DepartmentController::class)->except(['show']);
-        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+        Route::get('/reports', [ReportController::class, 'index'])
+            ->name('reports.index');
+
+        // PDF report export
+        Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])
+            ->name('reports.export.pdf');
+
+        // Excel report export
+        Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])
+            ->name('reports.export.excel');
     });
 });
