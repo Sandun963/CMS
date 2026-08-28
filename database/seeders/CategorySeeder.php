@@ -10,16 +10,47 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['name' => 'Hardware', 'code' => 'hardware'],
-            ['name' => 'Network', 'code' => 'network'],
-            ['name' => 'Software', 'code' => 'software'],
-            ['name' => 'Printer / Scanner', 'code' => 'printer'],
-            ['name' => 'Email / Internet', 'code' => 'email'],
-            ['name' => 'Other', 'code' => 'other'],
+
+            [
+                'name' => 'Hardware & Repairing',
+                'code' => 'HARDWARE',
+            ],
+
+            [
+                'name' => 'Network & Maintenance',
+                'code' => 'NETWORK',
+            ],
+
+            [
+                'name' => 'Systems & Web',
+                'code' => 'SYSTEMS',
+            ],
+
+            [
+                'name' => 'Communications',
+                'code' => 'COMM',
+            ],
+
+            [
+                'name' => 'ICT Equipments',
+                'code' => 'ICT_EQ',
+            ],
+
         ];
 
-        foreach ($categories as $cat) {
-            Category::updateOrCreate(['code' => $cat['code']], $cat);
+        foreach ($categories as $category) {
+
+            Category::updateOrCreate(
+
+                [
+                    'code' => $category['code']
+                ],
+
+                [
+                    'name' => $category['name'],
+                    'is_active' => true,
+                ]
+            );
         }
     }
 }

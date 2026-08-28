@@ -12,7 +12,7 @@ class BreakdownRequest extends Model
     protected $fillable = [
         'request_number', 'department_id', 'requested_by', 'category_id',
         'title', 'description', 'location', 'status',
-        'assigned_to', 'received_at',
+        'assigned_to', 'received_at','area','machine_owner_name','machine_owner_contact',
     ];
 
     protected function casts(): array

@@ -19,58 +19,208 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-            <input type="text" name="title" class="form-control" value="{{ old('title') }}" placeholder="e.g. Printer not working" required>
+
+            <label
+                for="subCategory"
+                class="form-label fw-semibold"
+            >
+                Sub Category
+                <span class="text-danger">*</span>
+            </label>
+
+            <select
+                name="title"
+                id="subCategory"
+                class="form-select"
+                required
+            >
+
+                <option value="">
+                    Select Sub Category
+                </option>
+
+                @foreach($subCategories as $subCategory)
+
+                    <option
+                        value="{{ $subCategory }}"
+                        @selected(old('title') === $subCategory)
+                    >
+                        {{ $subCategory }}
+                    </option>
+
+                @endforeach
+
+            </select>
+
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
-            <textarea name="description" class="form-control" rows="4" placeholder="Describe the issue in detail" required>{{ old('description') }}</textarea>
+            <label class="form-label">
+                Description <span class="text-muted">(optional)</span>
+            </label>
+
+            <textarea name="description"
+                    class="form-control"
+                    rows="4"
+                    placeholder="Describe the issue in detail (optional)">{{ old('description') }}</textarea>
         </div>
 
         <div class="row">
 
-            {{-- Ministry --}}
+        {{-- Floor / Division --}}
+        <div class="row">
+
+            {{-- Floor --}}
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-semibold">
-                    Ministry <span class="text-danger">*</span>
+
+                <label
+                    for="floorSelect"
+                    class="form-label fw-semibold"
+                >
+                    Floor
+                    <span class="text-danger">*</span>
                 </label>
 
                 <select
-                    name="ministry_name"
-                    id="ministrySelect"
+                    name="floor"
+                    id="floorSelect"
                     class="form-select"
                     required
                 >
-                    <option value="">Select Ministry</option>
 
-                    @foreach($ministries as $ministry)
+                    <option value="">
+                        Select Floor
+                    </option>
+
+                    @foreach($floors as $floor)
+
                         <option
-                            value="{{ $ministry }}"
-                            @selected(old('ministry_name') === $ministry)
+                            value="{{ $floor }}"
+                            @selected(old('floor') === $floor)
                         >
-                            {{ $ministry }}
+                            {{ $floor }}
                         </option>
+
                     @endforeach
+
                 </select>
+
             </div>
 
 
-            {{-- Department --}}
+            {{-- Division --}}
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-semibold">
-                    Department <span class="text-danger">*</span>
+
+                <label
+                    for="divisionSelect"
+                    class="form-label fw-semibold"
+                >
+                    Division
+                    <span class="text-danger">*</span>
                 </label>
 
                 <select
                     name="department_id"
-                    id="departmentSelect"
+                    id="divisionSelect"
                     class="form-select"
                     required
                     disabled
                 >
-                    <option value="">Select Ministry First</option>
+
+                    <option value="">
+                        Select Floor First
+                    </option>
+
                 </select>
+
+            </div>
+
+        </div>
+
+        {{-- Area --}}
+        <div class="mb-3">
+
+            <label
+                for="area"
+                class="form-label fw-semibold"
+            >
+                Area
+                <span class="text-danger">*</span>
+            </label>
+
+            <select
+                name="area"
+                id="area"
+                class="form-select"
+                required
+            >
+
+                <option value="">
+                    Select Area
+                </option>
+
+                @foreach($areas as $area)
+
+                    <option
+                        value="{{ $area }}"
+                        @selected(old('area') === $area)
+                    >
+                        {{ $area }}
+                    </option>
+
+                @endforeach
+
+            </select>
+
+        </div>
+
+
+        {{-- Machine Owner --}}
+        <div class="row">
+
+            <div class="col-md-6 mb-3">
+
+                <label
+                    for="machineOwnerName"
+                    class="form-label fw-semibold"
+                >
+                    Machine Owner Name
+                    <span class="text-danger">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    name="machine_owner_name"
+                    id="machineOwnerName"
+                    class="form-control"
+                    value="{{ old('machine_owner_name') }}"
+                    placeholder="Enter machine owner's name"
+                    required
+                >
+
+            </div>
+
+
+            <div class="col-md-6 mb-3">
+
+                <label
+                    for="machineOwnerContact"
+                    class="form-label fw-semibold"
+                >
+                    Contact Number
+                    <span class="text-danger">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    name="machine_owner_contact"
+                    id="machineOwnerContact"
+                    class="form-control"
+                    value="{{ old('machine_owner_contact') }}"
+                    placeholder="e.g. 0712345678"
+                    required
+                >
+
             </div>
 
         </div>
@@ -89,53 +239,109 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const ministrySelect = document.getElementById('ministrySelect');
-    const departmentSelect = document.getElementById('departmentSelect');
+    const floorSelect =
+        document.getElementById('floorSelect');
 
-    const departments = @json($departments);
+    const divisionSelect =
+        document.getElementById('divisionSelect');
 
-    const oldDepartmentId = "{{ old('department_id') }}";
+    const divisions = @json($divisions);
 
-    function loadDepartments() {
+    const oldDivisionId =
+        "{{ old('department_id') }}";
 
-        const selectedMinistry = ministrySelect.value;
 
-        departmentSelect.innerHTML =
-            '<option value="">Select Department</option>';
+    function loadDivisions() {
 
-        if (!selectedMinistry) {
-            departmentSelect.disabled = true;
-            departmentSelect.innerHTML =
-                '<option value="">Select Ministry First</option>';
+        const selectedFloor =
+            floorSelect.value;
+
+
+        /*
+         * Reset dropdown
+         */
+        divisionSelect.innerHTML =
+            '<option value="">Select Division</option>';
+
+
+        /*
+         * No floor selected
+         */
+        if (! selectedFloor) {
+
+            divisionSelect.disabled = true;
+
+            divisionSelect.innerHTML =
+                '<option value="">Select Floor First</option>';
 
             return;
         }
 
-        const filteredDepartments = departments.filter(function (department) {
-            return department.ministry_name === selectedMinistry;
-        });
 
-        filteredDepartments.forEach(function (department) {
+        /*
+         * Filter divisions by selected floor
+         */
+        const filteredDivisions =
+            divisions.filter(function (division) {
 
-            const option = document.createElement('option');
+                return division.floor === selectedFloor;
 
-            option.value = department.id;
-            option.textContent = department.name;
+            });
 
-            if (String(department.id) === String(oldDepartmentId)) {
+
+        /*
+         * Add matching divisions
+         */
+        filteredDivisions.forEach(function (division) {
+
+            const option =
+                document.createElement('option');
+
+            option.value =
+                division.id;
+
+            option.textContent =
+                division.name;
+
+
+            if (
+                String(division.id)
+                ===
+                String(oldDivisionId)
+            ) {
+
                 option.selected = true;
+
             }
 
-            departmentSelect.appendChild(option);
+
+            divisionSelect.appendChild(option);
+
         });
 
-        departmentSelect.disabled = false;
+
+        divisionSelect.disabled = false;
+
     }
 
-    ministrySelect.addEventListener('change', loadDepartments);
 
-    if (ministrySelect.value) {
-        loadDepartments();
+    /*
+     * Floor changed
+     */
+    floorSelect.addEventListener(
+        'change',
+        loadDivisions
+    );
+
+
+    /*
+     * Restore old selection
+     * after validation error
+     */
+    if (floorSelect.value) {
+
+        loadDivisions();
+
     }
 
 });

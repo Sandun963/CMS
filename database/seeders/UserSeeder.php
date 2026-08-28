@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
         $hr = Department::where('code', 'DEF')->first();
 
         // All demo accounts share the same password for easy testing
-        $password = Hash::make('password123');
+        $password = Hash::make('1234');
 
         User::updateOrCreate(['username' => 'ithead'], [
             'name' => 'IT Head Admin',
