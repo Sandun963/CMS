@@ -99,7 +99,6 @@ class BreakdownRequestController extends Controller
          * so no additional restriction is needed.
          */
 
-
         /*
         |--------------------------------------------------------------------------
         | Filters
@@ -115,7 +114,6 @@ class BreakdownRequestController extends Controller
 
         }
 
-
         if ($request->filled('department_id')) {
 
             $query->where(
@@ -124,7 +122,6 @@ class BreakdownRequestController extends Controller
             );
 
         }
-
 
         if ($request->filled('q')) {
 
@@ -137,7 +134,6 @@ class BreakdownRequestController extends Controller
                     'like',
                     "%{$search}%"
                 )
-
                 ->orWhere(
                     'title',
                     'like',
@@ -147,7 +143,6 @@ class BreakdownRequestController extends Controller
             });
 
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -160,10 +155,8 @@ class BreakdownRequestController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-
         $departments = Department::orderBy('name')
             ->get();
-
 
         return view(
             'requests.index',
@@ -173,7 +166,6 @@ class BreakdownRequestController extends Controller
             )
         );
     }
-
 
     /**
      * Show request creation page.
@@ -198,7 +190,6 @@ class BreakdownRequestController extends Controller
             ->orderBy('floor')
             ->pluck('floor');
 
-
         /*
         |--------------------------------------------------------------------------
         | Divisions
@@ -219,7 +210,6 @@ class BreakdownRequestController extends Controller
                 'floor'
             ]);
 
-
         /*
         |--------------------------------------------------------------------------
         | Sub Categories
@@ -231,7 +221,6 @@ class BreakdownRequestController extends Controller
             []
         );
 
-
         /*
         |--------------------------------------------------------------------------
         | Areas
@@ -242,7 +231,6 @@ class BreakdownRequestController extends Controller
             'breakdown.areas',
             []
         );
-
 
         return view(
             'requests.create',
@@ -256,14 +244,12 @@ class BreakdownRequestController extends Controller
         );
     }
 
-
     /**
      * Store new breakdown request.
      */
     public function store(Request $request)
     {
         $user = Auth::user();
-
 
         /*
         |--------------------------------------------------------------------------
@@ -277,7 +263,6 @@ class BreakdownRequestController extends Controller
                 'nullable',
                 'exists:categories,id'
             ],
-
 
             /*
              * The UI calls this field "Sub Category",
@@ -295,12 +280,10 @@ class BreakdownRequestController extends Controller
                 ),
             ],
 
-
             'description' => [
                 'nullable',
                 'string'
             ],
-
 
             'floor' => [
                 'required',
@@ -316,7 +299,12 @@ class BreakdownRequestController extends Controller
             'area' => [
                 'required',
                 'string',
-                Rule::in(config('breakdown.areas', [])),
+                Rule::in(
+                    config(
+                        'breakdown.areas',
+                        []
+                    )
+                ),
             ],
 
             'machine_owner_name' => [
@@ -331,7 +319,6 @@ class BreakdownRequestController extends Controller
                 'max:30'
             ],
 
-
             'attachments.*' => [
                 'nullable',
                 'file',
@@ -341,14 +328,13 @@ class BreakdownRequestController extends Controller
 
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
-        | Extra Ministry / Department Validation
+        | Extra Floor / Division Validation
         |--------------------------------------------------------------------------
         |
-        | Make sure the selected department actually belongs
-        | to the selected ministry.
+        | Make sure the selected division actually belongs
+        | to the selected floor.
         |
         */
 
@@ -366,7 +352,6 @@ class BreakdownRequestController extends Controller
             )
             ->first();
 
-
         if (! $division) {
 
             return back()
@@ -376,19 +361,6 @@ class BreakdownRequestController extends Controller
                 ])
                 ->withInput();
         }
-
-
-        if (! $department) {
-
-            return back()
-                ->withErrors([
-                    'department_id' =>
-                        'The selected department does not belong to the selected ministry.'
-                ])
-                ->withInput();
-
-        }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -418,7 +390,7 @@ class BreakdownRequestController extends Controller
                 $data['title'],
 
             'description' =>
-                $data['description'],
+                $data['description'] ?? null,
 
             'status' =>
                 'New',
@@ -426,7 +398,8 @@ class BreakdownRequestController extends Controller
             'received_at' =>
                 now(),
 
-            'area' => $data['area'],
+            'area' =>
+                $data['area'],
 
             'machine_owner_name' =>
                 $data['machine_owner_name'],
@@ -435,7 +408,6 @@ class BreakdownRequestController extends Controller
                 $data['machine_owner_contact'],
 
         ]);
-
 
         /*
         |--------------------------------------------------------------------------
@@ -449,7 +421,6 @@ class BreakdownRequestController extends Controller
             $user
         );
 
-
         /*
         |--------------------------------------------------------------------------
         | Activity Log
@@ -462,7 +433,6 @@ class BreakdownRequestController extends Controller
             'Submitted request',
             $breakdown->title
         );
-
 
         /*
         |--------------------------------------------------------------------------
@@ -481,7 +451,6 @@ class BreakdownRequestController extends Controller
             );
     }
 
-
     /**
      * Show individual breakdown request.
      */
@@ -489,7 +458,6 @@ class BreakdownRequestController extends Controller
         BreakdownRequest $breakdownRequest
     ) {
         $user = Auth::user();
-
 
         /*
         |--------------------------------------------------------------------------
@@ -501,7 +469,6 @@ class BreakdownRequestController extends Controller
             $user,
             $breakdownRequest
         );
-
 
         /*
         |--------------------------------------------------------------------------
@@ -535,7 +502,6 @@ class BreakdownRequestController extends Controller
 
         ]);
 
-
         /*
         |--------------------------------------------------------------------------
         | Assign Officers
@@ -555,7 +521,6 @@ class BreakdownRequestController extends Controller
                 true
             )
             ->get();
-
 
         /*
         |--------------------------------------------------------------------------
@@ -577,7 +542,6 @@ class BreakdownRequestController extends Controller
             )
             ->get();
 
-
         /*
         |--------------------------------------------------------------------------
         | Return View
@@ -594,7 +558,6 @@ class BreakdownRequestController extends Controller
         );
     }
 
-
     /**
      * Authorize request visibility.
      */
@@ -610,7 +573,6 @@ class BreakdownRequestController extends Controller
             return;
         }
 
-
         /*
          * Ministry User:
          * only their own requests.
@@ -624,7 +586,6 @@ class BreakdownRequestController extends Controller
             return;
         }
 
-
         /*
          * Technical Officer:
          * only their assigned requests.
@@ -637,7 +598,6 @@ class BreakdownRequestController extends Controller
         ) {
             return;
         }
-
 
         /*
          * Assign Officer:
@@ -656,7 +616,6 @@ class BreakdownRequestController extends Controller
                 return;
             }
 
-
             if (
                 $breakdownRequest
                     ->assignments()
@@ -671,7 +630,6 @@ class BreakdownRequestController extends Controller
 
         }
 
-
         /*
          * Otherwise deny.
          */
@@ -680,7 +638,6 @@ class BreakdownRequestController extends Controller
             'You do not have access to this request.'
         );
     }
-
 
     /**
      * Generate request number.
@@ -692,7 +649,6 @@ class BreakdownRequestController extends Controller
     {
         $year = now()->year;
 
-
         $count = BreakdownRequest::whereYear(
                 'created_at',
                 $year
@@ -700,14 +656,12 @@ class BreakdownRequestController extends Controller
             ->count()
             + 1;
 
-
         return sprintf(
             'BRK-%d-%04d',
             $year,
             $count
         );
     }
-
 
     /**
      * Store request attachments.
@@ -725,7 +679,6 @@ class BreakdownRequestController extends Controller
             return;
         }
 
-
         foreach (
             $request->file('attachments')
             as $file
@@ -739,7 +692,6 @@ class BreakdownRequestController extends Controller
                 $breakdown->id,
                 'public'
             );
-
 
             /*
              * Save attachment record.

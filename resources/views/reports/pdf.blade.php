@@ -131,13 +131,6 @@
     @endif
 
 
-    @if(!empty($filters['ministry_name']))
-        Ministry:
-        {{ $filters['ministry_name'] }}
-        &nbsp;&nbsp;
-    @endif
-
-
     @if(!empty($filters['date_from']))
         From:
         {{ $filters['date_from'] }}
@@ -150,11 +143,27 @@
         {{ $filters['date_to'] }}
     @endif
 
-    @if($selectedDepartment)
-        Department:
-        {{ $selectedDepartment->name }}
+    
+    @if(!empty($filters['floor']))
+        Floor:
+        {{ $filters['floor'] }}
         &nbsp;&nbsp;
     @endif
+
+
+    @if($selectedDivision)
+        Division:
+        {{ $selectedDivision->name }}
+        &nbsp;&nbsp;
+    @endif
+
+
+    @if(!empty($filters['area']))
+        Area:
+        {{ $filters['area'] }}
+        &nbsp;&nbsp;
+    @endif
+
 
     @if($selectedTechnician)
         Technical Officer:
@@ -174,9 +183,11 @@
 
             <th>Request No.</th>
 
-            <th>Ministry</th>
+            <th>Floor</th>
 
-            <th>Department</th>
+            <th>Division</th>
+
+            <th>Area</th>
 
             <th>Category</th>
 
@@ -207,12 +218,17 @@
 
 
                 <td>
-                    {{ $request->department->ministry_name ?? '-' }}
+                    {{ $request->department->floor ?? '-' }}
                 </td>
 
 
                 <td>
                     {{ $request->department->name ?? '-' }}
+                </td>
+
+
+                <td>
+                    {{ $request->area ?? '-' }}
                 </td>
 
 

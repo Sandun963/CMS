@@ -13,52 +13,83 @@ class BreakdownRequest extends Model
         'request_number', 'department_id', 'requested_by', 'category_id',
         'title', 'description', 'location', 'status',
         'assigned_to', 'received_at','area','machine_owner_name','machine_owner_contact',
+        'floor_id', 'division_id', 'area_id',
     ];
+
+    
+    public function floor()
+    {
+        return $this->belongsTo(Floor::class);
+    }
+
+
+    public function division()
+    {
+        return $this->belongsTo(Division::class);
+    }
+
+
+    public function areaLocation()
+    {
+        return $this->belongsTo(
+            Area::class,
+            'area_id'
+        );
+    }
 
     protected function casts(): array
     {
         return ['received_at' => 'datetime'];
     }
 
+
     public function department()
     {
         return $this->belongsTo(Department::class);
     }
+
 
     public function requestedBy()
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
 
+
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
+
 
     public function assignedTo()
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+
     public function assignments()
     {
         return $this->hasMany(Assignment::class, 'request_id');
     }
+
 
     public function latestAssignment()
     {
         return $this->hasOne(Assignment::class, 'request_id')->latestOfMany();
     }
 
+
     public function attachments()
     {
         return $this->morphMany(Attachment::class, 'attachable');
     }
 
+
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class, 'request_id')->latest();
     }
+
 
     public function statusBadgeClass(): string
     {

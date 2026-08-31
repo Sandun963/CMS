@@ -25,15 +25,6 @@
             Export All PDF
         </a>
 
-        {{-- Export all requests as Excel --}}
-        <a
-            href="{{ route('reports.export.excel') }}"
-            class="btn btn-success"
-        >
-            <i class="bi bi-file-earmark-excel me-1"></i>
-            Export Excel
-        </a>
-
     </div>
 
 </div>
@@ -136,31 +127,31 @@
 
 
                 {{-- =====================================================
-                     MINISTRY
-                ====================================================== --}}
+                    FLOOR
+                ====================================================== --}}      
                 <div class="col-md-4">
 
                     <label
-                        for="reportMinistry"
+                        for="reportFloor"
                         class="form-label"
                     >
-                        Ministry
+                        Floor
                     </label>
 
                     <select
-                        name="ministry_name"
-                        id="reportMinistry"
+                        name="floor"
+                        id="reportFloor"
                         class="form-select"
                     >
 
                         <option value="">
-                            All Ministries
+                            All Floors
                         </option>
 
-                        @foreach($ministries as $ministry)
+                        @foreach($floors as $floor)
 
-                            <option value="{{ $ministry }}">
-                                {{ $ministry }}
+                            <option value="{{ $floor }}">
+                                {{ $floor }}
                             </option>
 
                         @endforeach
@@ -171,34 +162,35 @@
 
 
                 {{-- =====================================================
-                     DEPARTMENT
+                    DIVISION
                 ====================================================== --}}
+                
                 <div class="col-md-4">
 
                     <label
-                        for="reportDepartment"
+                        for="reportDivision"
                         class="form-label"
                     >
-                        Department
+                        Division
                     </label>
 
                     <select
                         name="department_id"
-                        id="reportDepartment"
+                        id="reportDivision"
                         class="form-select"
                     >
 
                         <option value="">
-                            All Departments
+                            All Divisions
                         </option>
 
-                        @foreach($departments as $department)
+                        @foreach($divisions as $division)
 
                             <option
-                                value="{{ $department->id }}"
-                                data-ministry="{{ $department->ministry_name }}"
+                                value="{{ $division->id }}"
+                                data-floor="{{ $division->floor }}"
                             >
-                                {{ $department->name }}
+                                {{ $division->name }}
                             </option>
 
                         @endforeach
@@ -206,8 +198,43 @@
                     </select>
 
                     <div class="form-text">
-                        Select a ministry to show only its departments.
+                        Select a floor to show only its divisions.
                     </div>
+
+                </div>
+
+
+                {{-- =====================================================
+                    AREA
+                ====================================================== --}}
+                <div class="col-md-4">
+
+                    <label
+                        for="reportArea"
+                        class="form-label"
+                    >
+                        Area
+                    </label>
+
+                    <select
+                        name="area"
+                        id="reportArea"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All Areas
+                        </option>
+
+                        @foreach($areas as $area)
+
+                            <option value="{{ $area }}">
+                                {{ $area }}
+                            </option>
+
+                        @endforeach
+
+                    </select>
 
                 </div>
 
@@ -546,158 +573,95 @@
 ========================================================= --}}
 <script>
 
-document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
 
-    const ministrySelect =
-        document.getElementById('reportMinistry');
+            const floorSelect =
+                document.getElementById('reportFloor');
 
-    const departmentSelect =
-        document.getElementById('reportDepartment');
+            const divisionSelect =
+                document.getElementById('reportDivision');
 
-    const clearButton =
-        document.getElementById('clearReportFilters');
-
-
-    /*
-     * Store all department options when the page loads.
-     */
-    const allDepartmentOptions = Array.from(
-        departmentSelect.querySelectorAll(
-            'option[data-ministry]'
-        )
-    ).map(function (option) {
-
-        return {
-            value: option.value,
-            text: option.textContent.trim(),
-            ministry: option.dataset.ministry
-        };
-
-    });
-
-
-    /*
-     * Rebuild Department dropdown.
-     */
-    function updateDepartments() {
-
-        const selectedMinistry =
-            ministrySelect.value;
-
-
-        /*
-         * Remove current options.
-         */
-        departmentSelect.innerHTML =
-            '<option value="">All Departments</option>';
-
-
-        /*
-         * Add matching departments.
-         */
-        allDepartmentOptions.forEach(function (department) {
-
-            if (
-                selectedMinistry === ''
-                ||
-                department.ministry === selectedMinistry
-            ) {
-
-                const option =
-                    document.createElement('option');
-
-                option.value =
-                    department.value;
-
-                option.textContent =
-                    department.text;
-
-                option.dataset.ministry =
-                    department.ministry;
-
-                departmentSelect.appendChild(option);
-
-            }
-
-        });
-
-    }
-
-
-    /*
-     * When Ministry changes,
-     * update Department list.
-     */
-    ministrySelect.addEventListener(
-        'change',
-        updateDepartments
-    );
-
-
-    /*
-     * Reset button.
-     */
-    clearButton.addEventListener(
-        'click',
-        function () {
+            const clearButton =
+                document.getElementById('clearReportFilters');
 
             /*
-             * Wait until the browser resets
-             * the form fields.
-             */
-            setTimeout(function () {
+            * Save all divisions.
+            */
+            const allDivisions = Array.from(
+                divisionSelect.querySelectorAll(
+                    'option[data-floor]'
+                )
+            ).map(function (option) {
 
-                updateDepartments();
+                return {
+                    value: option.value,
+                    text: option.textContent.trim(),
+                    floor: option.dataset.floor
+                };
 
-            }, 0);
+            });
 
-        }
-    );
+            /*
+            * Filter divisions using selected floor.
+            */
+            function updateDivisions() {
 
-});
+                const selectedFloor =
+                    floorSelect.value;
 
-</script>
+                divisionSelect.innerHTML =
+                    '<option value="">All Divisions</option>';
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
+                allDivisions.forEach(function (division) {
 
-    const ministrySelect =
-        document.getElementById('reportMinistry');
+                    if (
+                        selectedFloor === ''
+                        ||
+                        division.floor === selectedFloor
+                    ) {
 
-    const departmentSelect =
-        document.getElementById('reportDepartment');
+                        const option =
+                            document.createElement('option');
 
-    const allDepartmentOptions =
-        Array.from(
-            departmentSelect.querySelectorAll('option[data-ministry]')
-        );
+                        option.value =
+                            division.value;
 
-    ministrySelect.addEventListener('change', function () {
+                        option.textContent =
+                            division.text;
 
-        const selectedMinistry = this.value;
+                        option.dataset.floor =
+                            division.floor;
 
-        departmentSelect.innerHTML =
-            '<option value="">All Departments</option>';
+                        divisionSelect.appendChild(
+                            option
+                        );
 
-        allDepartmentOptions.forEach(function (option) {
+                    }
 
-            if (
-                selectedMinistry === ''
-                ||
-                option.dataset.ministry === selectedMinistry
-            ) {
-
-                departmentSelect.appendChild(
-                    option.cloneNode(true)
-                );
+                });
 
             }
 
+            floorSelect.addEventListener(
+                'change',
+                updateDivisions
+            );
+
+            clearButton.addEventListener(
+                'click',
+                function () {
+
+                    setTimeout(function () {
+
+                        updateDivisions();
+
+                    }, 0);
+
+                }
+            );
+
         });
 
-    });
-
-});
 </script>
 
 @endsection

@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\BreakdownRequestsExport;
 use App\Models\BreakdownRequest;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Department;
 use App\Models\Role;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
@@ -21,55 +19,112 @@ class ReportController extends Controller
     {
         abort_unless(Auth::user()->isItHead(), 403);
 
-        $byDepartment = BreakdownRequest::selectRaw('department_id, count(*) as total')
+        $byDepartment = BreakdownRequest::selectRaw(
+                'department_id, count(*) as total'
+            )
             ->with('department')
             ->groupBy('department_id')
             ->get();
 
-        $byStatus = BreakdownRequest::selectRaw('status, count(*) as total')
+        $byStatus = BreakdownRequest::selectRaw(
+                'status, count(*) as total'
+            )
             ->groupBy('status')
             ->get();
 
-        $byCategory = BreakdownRequest::selectRaw('category_id, count(*) as total')
+        $byCategory = BreakdownRequest::selectRaw(
+                'category_id, count(*) as total'
+            )
             ->with('category')
             ->groupBy('category_id')
             ->get();
 
-        $byTechnician = BreakdownRequest::selectRaw('assigned_to, count(*) as total')
+        $byTechnician = BreakdownRequest::selectRaw(
+                'assigned_to, count(*) as total'
+            )
             ->whereNotNull('assigned_to')
             ->with('assignedTo')
             ->groupBy('assigned_to')
             ->get();
 
-        $ministries = Department::whereNotNull('ministry_name')
-            ->where('ministry_name', '!=', '')
-            ->select('ministry_name')
+        /*
+        |--------------------------------------------------------------------------
+        | Floors
+        |--------------------------------------------------------------------------
+        */
+
+        $floors = Department::where('is_active', true)
+            ->whereNotNull('floor')
+            ->where('floor', '!=', '')
+            ->select('floor')
             ->distinct()
-            ->orderBy('ministry_name')
-            ->pluck('ministry_name');
+            ->orderBy('floor')
+            ->pluck('floor');
 
-        $departments = Department::where('is_active', true)
+        /*
+        |--------------------------------------------------------------------------
+        | Divisions
+        |--------------------------------------------------------------------------
+        */
+
+        $divisions = Department::where('is_active', true)
+            ->whereNotNull('floor')
             ->orderBy('name')
-            ->get();
+            ->get([
+                'id',
+                'name',
+                'floor'
+            ]);
 
-        $technicians = User::whereHas('role', function ($query) {
-                $query->where('code', Role::TECHNICAL_OFFICER);
-            })
+        /*
+        |--------------------------------------------------------------------------
+        | Areas
+        |--------------------------------------------------------------------------
+        |
+        | Areas currently come from breakdown_requests.area.
+        |
+        */
+
+        $areas = BreakdownRequest::whereNotNull('area')
+            ->where('area', '!=', '')
+            ->select('area')
+            ->distinct()
+            ->orderBy('area')
+            ->pluck('area');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Technical Officers
+        |--------------------------------------------------------------------------
+        */
+
+        $technicians = User::whereHas(
+                'role',
+                function ($query) {
+                    $query->where(
+                        'code',
+                        Role::TECHNICAL_OFFICER
+                    );
+                }
+            )
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
-        return view('reports.index', compact(
-            'byDepartment',
-            'byStatus',
-            'byCategory',
-            'byTechnician',
-            'ministries',
-            'departments',
-            'technicians'
-        ));
+        return view(
+            'reports.index',
+            compact(
+                'byDepartment',
+                'byStatus',
+                'byCategory',
+                'byTechnician',
+                'floors',
+                'divisions',
+                'areas',
+                'technicians'
+            )
+        );
     }
-
 
     /**
      * Export detailed breakdown request report as PDF.
@@ -90,12 +145,15 @@ class ReportController extends Controller
         | Request Number
         |--------------------------------------------------------------------------
         */
+
         if ($request->filled('request_number')) {
+
             $query->where(
                 'request_number',
                 'like',
                 '%' . $request->request_number . '%'
             );
+
         }
 
         /*
@@ -103,37 +161,66 @@ class ReportController extends Controller
         | Status
         |--------------------------------------------------------------------------
         */
+
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+
+            $query->where(
+                'status',
+                $request->status
+            );
+
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Ministry
+        | Floor
         |--------------------------------------------------------------------------
         */
-        if ($request->filled('ministry_name')) {
 
-            $query->whereHas('department', function ($q) use ($request) {
+        if ($request->filled('floor')) {
 
-                $q->where(
-                    'ministry_name',
-                    $request->ministry_name
-                );
+            $query->whereHas(
+                'department',
+                function ($q) use ($request) {
 
-            });
+                    $q->where(
+                        'floor',
+                        $request->floor
+                    );
+
+                }
+            );
+
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Department
+        | Division
         |--------------------------------------------------------------------------
         */
+
         if ($request->filled('department_id')) {
+
             $query->where(
                 'department_id',
                 $request->department_id
             );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Area
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('area')) {
+
+            $query->where(
+                'area',
+                $request->area
+            );
+
         }
 
         /*
@@ -141,11 +228,14 @@ class ReportController extends Controller
         | Technical Officer
         |--------------------------------------------------------------------------
         */
+
         if ($request->filled('technician_id')) {
+
             $query->where(
                 'assigned_to',
                 $request->technician_id
             );
+
         }
 
         /*
@@ -153,12 +243,15 @@ class ReportController extends Controller
         | Date From
         |--------------------------------------------------------------------------
         */
+
         if ($request->filled('date_from')) {
+
             $query->whereDate(
                 'created_at',
                 '>=',
                 $request->date_from
             );
+
         }
 
         /*
@@ -166,12 +259,15 @@ class ReportController extends Controller
         | Date To
         |--------------------------------------------------------------------------
         */
+
         if ($request->filled('date_to')) {
+
             $query->whereDate(
                 'created_at',
                 '<=',
                 $request->date_to
             );
+
         }
 
         $requests = $query
@@ -179,61 +275,68 @@ class ReportController extends Controller
             ->get();
 
         $filters = [
-            'request_number' => $request->request_number,
-            'status' => $request->status,
-            'ministry_name' => $request->ministry_name,
-            'department_id' => $request->department_id,
-            'technician_id' => $request->technician_id,
-            'date_from' => $request->date_from,
-            'date_to' => $request->date_to,
+            'request_number' =>
+                $request->request_number,
+
+            'status' =>
+                $request->status,
+
+            'floor' =>
+                $request->floor,
+
+            'department_id' =>
+                $request->department_id,
+
+            'area' =>
+                $request->area,
+
+            'technician_id' =>
+                $request->technician_id,
+
+            'date_from' =>
+                $request->date_from,
+
+            'date_to' =>
+                $request->date_to,
         ];
 
-        $selectedDepartment = null;
+        $selectedDivision = null;
         $selectedTechnician = null;
 
         if ($request->filled('department_id')) {
-            $selectedDepartment = Department::find(
+
+            $selectedDivision = Department::find(
                 $request->department_id
             );
+
         }
 
         if ($request->filled('technician_id')) {
+
             $selectedTechnician = User::find(
                 $request->technician_id
             );
+
         }
 
         $pdf = Pdf::loadView(
-            'reports.pdf',
-            compact(
-                'requests',
-                'filters',
-                'selectedDepartment',
-                'selectedTechnician'
+                'reports.pdf',
+                compact(
+                    'requests',
+                    'filters',
+                    'selectedDivision',
+                    'selectedTechnician'
+                )
             )
-        )
-        ->setPaper('a4', 'landscape');
+            ->setPaper(
+                'a4',
+                'landscape'
+            );
 
         return $pdf->download(
             'breakdown_requests_' .
             now()->format('Y-m-d_H-i-s') .
             '.pdf'
-        );
-    }
-
-
-    /**
-     * Export detailed breakdown request report as Excel.
-     */
-    public function exportExcel()
-    {
-        abort_unless(Auth::user()->isItHead(), 403);
-
-        return Excel::download(
-            new BreakdownRequestsExport(),
-            'breakdown_requests_' .
-            now()->format('Y-m-d_H-i-s') .
-            '.xlsx'
         );
     }
 }
