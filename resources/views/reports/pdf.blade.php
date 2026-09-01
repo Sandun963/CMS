@@ -39,6 +39,14 @@
             color: #666;
         }
 
+        .filters {
+            margin-bottom: 15px;
+            padding: 8px;
+            background: #f5f5f5;
+            border: 1px solid #dddddd;
+            line-height: 1.7;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -96,84 +104,83 @@
 
 </div>
 
+
 @if(
     !empty($filters['request_number'])
     || !empty($filters['status'])
-    || !empty($filters['ministry_name'])
-    || !empty($filters['department_id'])
+    || !empty($filters['floor_id'])
+    || !empty($filters['division_id'])
+    || !empty($filters['area_id'])
     || !empty($filters['technician_id'])
     || !empty($filters['date_from'])
     || !empty($filters['date_to'])
 )
 
-<div style="
-    margin-bottom: 15px;
-    padding: 8px;
-    background: #f5f5f5;
-    border: 1px solid #dddddd;
-">
+    <div class="filters">
 
-    <strong>Applied Filters:</strong>
+        <strong>Applied Filters:</strong>
 
-    <br>
-
-    @if(!empty($filters['request_number']))
-        Request Number:
-        {{ $filters['request_number'] }}
-        &nbsp;&nbsp;
-    @endif
+        <br>
 
 
-    @if(!empty($filters['status']))
-        Status:
-        {{ $filters['status'] }}
-        &nbsp;&nbsp;
-    @endif
+        @if(!empty($filters['request_number']))
+            Request Number:
+            {{ $filters['request_number'] }}
+            &nbsp;&nbsp;
+        @endif
 
 
-    @if(!empty($filters['date_from']))
-        From:
-        {{ $filters['date_from'] }}
-        &nbsp;&nbsp;
-    @endif
+        @if(!empty($filters['status']))
+            Status:
+            {{ $filters['status'] }}
+            &nbsp;&nbsp;
+        @endif
 
 
-    @if(!empty($filters['date_to']))
-        To:
-        {{ $filters['date_to'] }}
-    @endif
-
-    
-    @if(!empty($filters['floor']))
-        Floor:
-        {{ $filters['floor'] }}
-        &nbsp;&nbsp;
-    @endif
+        @if($selectedFloor)
+            Floor:
+            {{ $selectedFloor->name }}
+            &nbsp;&nbsp;
+        @endif
 
 
-    @if($selectedDivision)
-        Division:
-        {{ $selectedDivision->name }}
-        &nbsp;&nbsp;
-    @endif
+        @if($selectedDivision)
+            Division:
+            {{ $selectedDivision->name }}
+            &nbsp;&nbsp;
+        @endif
 
 
-    @if(!empty($filters['area']))
-        Area:
-        {{ $filters['area'] }}
-        &nbsp;&nbsp;
-    @endif
+        @if($selectedArea)
+            Area:
+            {{ $selectedArea->name }}
+            &nbsp;&nbsp;
+        @endif
 
 
-    @if($selectedTechnician)
-        Technical Officer:
-        {{ $selectedTechnician->name }}
-        &nbsp;&nbsp;
-    @endif
+        @if($selectedTechnician)
+            Technical Officer:
+            {{ $selectedTechnician->name }}
+            &nbsp;&nbsp;
+        @endif
 
-</div>
+
+        @if(!empty($filters['date_from']))
+            From:
+            {{ $filters['date_from'] }}
+            &nbsp;&nbsp;
+        @endif
+
+
+        @if(!empty($filters['date_to']))
+            To:
+            {{ $filters['date_to'] }}
+        @endif
+
+    </div>
 
 @endif
+
 
 <table>
 
@@ -212,28 +219,41 @@
 
             <tr>
 
+
                 <td>
                     {{ $request->request_number }}
                 </td>
 
 
                 <td>
-                    {{ $request->department->floor ?? '-' }}
+                    {{
+                        $request->floor?->name
+                        ?? $request->department?->floor
+                        ?? '-'
+                    }}
                 </td>
 
 
                 <td>
-                    {{ $request->department->name ?? '-' }}
+                    {{
+                        $request->division?->name
+                        ?? $request->department?->name
+                        ?? '-'
+                    }}
                 </td>
 
 
                 <td>
-                    {{ $request->area ?? '-' }}
+                    {{
+                        $request->areaLocation?->name
+                        ?? $request->area
+                        ?? '-'
+                    }}
                 </td>
 
 
                 <td>
-                    {{ $request->category->name ?? '-' }}
+                    {{ $request->category?->name ?? '-' }}
                 </td>
 
 
@@ -243,12 +263,12 @@
 
 
                 <td>
-                    {{ $request->requestedBy->name ?? '-' }}
+                    {{ $request->requestedBy?->name ?? '-' }}
                 </td>
 
 
                 <td>
-                    {{ $request->assignedTo->name ?? 'Not Assigned' }}
+                    {{ $request->assignedTo?->name ?? 'Not Assigned' }}
                 </td>
 
 
@@ -261,17 +281,18 @@
                     {{ $request->created_at->format('d/m/Y') }}
                 </td>
 
+
             </tr>
 
         @empty
 
             <tr>
 
-                <td colspan="9"
-                    style="text-align:center;">
-
+                <td
+                    colspan="10"
+                    style="text-align:center;"
+                >
                     No breakdown requests found.
-
                 </td>
 
             </tr>

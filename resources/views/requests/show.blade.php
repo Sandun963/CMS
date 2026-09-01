@@ -45,7 +45,11 @@
 
             {{ $breakdownRequest->requestedBy->name }}
 
-            ({{ $breakdownRequest->department->name ?? '-' }})
+            ({{
+                $breakdownRequest->division?->name
+                ?? $breakdownRequest->department?->name
+                ?? '-'
+            }})
 
         </div>
 
@@ -108,7 +112,7 @@
 
 
                 {{-- =========================================
-                     CATEGORY / MINISTRY / DEPARTMENT
+                     CATEGORY / FLOOR / DIVISION
                 ========================================== --}}
                 <div class="row small text-muted g-3">
 
@@ -135,7 +139,11 @@
                         </strong>
 
                         <span>
-                            {{ $breakdownRequest->department->floor ?? '-' }}
+                            {{
+                                $breakdownRequest->floor?->name
+                                ?? $breakdownRequest->department?->floor
+                                ?? '-'
+                            }}
                         </span>
 
                     </div>
@@ -149,7 +157,11 @@
                         </strong>
 
                         <span>
-                            {{ $breakdownRequest->department->name ?? '-' }}
+                            {{
+                                $breakdownRequest->division?->name
+                                ?? $breakdownRequest->department?->name
+                                ?? '-'
+                            }}
                         </span>
 
                     </div>
@@ -171,7 +183,11 @@
                         </strong>
 
                         <span>
-                            {{ $breakdownRequest->area ?? '-' }}
+                            {{
+                                $breakdownRequest->areaLocation?->name
+                                ?? $breakdownRequest->area
+                                ?? '-'
+                            }}
                         </span>
 
                     </div>

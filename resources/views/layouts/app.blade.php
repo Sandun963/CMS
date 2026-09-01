@@ -158,7 +158,6 @@
             @auth
             @if(auth()->user()->isItHead())
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}"><i class="bi bi-people me-2"></i>Manage Users</a></li>
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}" href="{{ route('departments.index') }}"><i class="bi bi-building me-2"></i>Manage Departments</a></li>
             @endif
 
             <li class="nav-item"><a class="nav-link {{ request()->routeIs('requests.index') ? 'active' : '' }}" href="{{ route('requests.index') }}"><i class="bi bi-file-earmark-text me-2"></i>{{ auth()->user()->isMinistryUser() ? 'My Requests' : 'All Requests' }}</a></li>

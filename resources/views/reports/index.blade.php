@@ -1,5 +1,7 @@
 @extends('layouts.app')
+
 @section('title', 'Reports')
+
 @section('content')
 
 {{-- =========================================================
@@ -9,14 +11,15 @@
 
     <div>
         <h4 class="mb-1">Reports</h4>
+
         <div class="text-muted small">
             View breakdown statistics and generate reports.
         </div>
     </div>
 
+
     <div class="d-flex gap-2">
 
-        {{-- Export all requests as PDF --}}
         <a
             href="{{ route('reports.export.pdf') }}"
             class="btn btn-danger"
@@ -36,17 +39,25 @@
 <div class="card stat-card mb-4">
 
     <div class="card-header bg-white">
+
         <div class="d-flex align-items-center">
+
             <i class="bi bi-funnel me-2 text-danger"></i>
 
             <div>
-                <strong>Generate Filtered PDF Report</strong>
+
+                <strong>
+                    Generate Filtered PDF Report
+                </strong>
 
                 <div class="text-muted small">
                     Select one or more filters to generate a customized report.
                 </div>
+
             </div>
+
         </div>
+
     </div>
 
 
@@ -61,9 +72,7 @@
             <div class="row g-3">
 
 
-                {{-- =====================================================
-                     REQUEST NUMBER
-                ====================================================== --}}
+                {{-- Request Number --}}
                 <div class="col-md-4">
 
                     <label
@@ -84,9 +93,7 @@
                 </div>
 
 
-                {{-- =====================================================
-                     STATUS
-                ====================================================== --}}
+                {{-- Status --}}
                 <div class="col-md-4">
 
                     <label
@@ -126,9 +133,7 @@
                 </div>
 
 
-                {{-- =====================================================
-                    FLOOR
-                ====================================================== --}}      
+                {{-- Floor --}}
                 <div class="col-md-4">
 
                     <label
@@ -139,7 +144,7 @@
                     </label>
 
                     <select
-                        name="floor"
+                        name="floor_id"
                         id="reportFloor"
                         class="form-select"
                     >
@@ -150,8 +155,8 @@
 
                         @foreach($floors as $floor)
 
-                            <option value="{{ $floor }}">
-                                {{ $floor }}
+                            <option value="{{ $floor->id }}">
+                                {{ $floor->name }}
                             </option>
 
                         @endforeach
@@ -161,10 +166,7 @@
                 </div>
 
 
-                {{-- =====================================================
-                    DIVISION
-                ====================================================== --}}
-                
+                {{-- Division --}}
                 <div class="col-md-4">
 
                     <label
@@ -175,38 +177,26 @@
                     </label>
 
                     <select
-                        name="department_id"
+                        name="division_id"
                         id="reportDivision"
                         class="form-select"
+                        disabled
                     >
 
                         <option value="">
-                            All Divisions
+                            Select Floor First
                         </option>
-
-                        @foreach($divisions as $division)
-
-                            <option
-                                value="{{ $division->id }}"
-                                data-floor="{{ $division->floor }}"
-                            >
-                                {{ $division->name }}
-                            </option>
-
-                        @endforeach
 
                     </select>
 
                     <div class="form-text">
-                        Select a floor to show only its divisions.
+                        Select a floor to show its divisions.
                     </div>
 
                 </div>
 
 
-                {{-- =====================================================
-                    AREA
-                ====================================================== --}}
+                {{-- Area --}}
                 <div class="col-md-4">
 
                     <label
@@ -217,31 +207,22 @@
                     </label>
 
                     <select
-                        name="area"
+                        name="area_id"
                         id="reportArea"
                         class="form-select"
+                        disabled
                     >
 
                         <option value="">
-                            All Areas
+                            Select Division First
                         </option>
-
-                        @foreach($areas as $area)
-
-                            <option value="{{ $area }}">
-                                {{ $area }}
-                            </option>
-
-                        @endforeach
 
                     </select>
 
                 </div>
 
 
-                {{-- =====================================================
-                     TECHNICAL OFFICER
-                ====================================================== --}}
+                {{-- Technical Officer --}}
                 <div class="col-md-4">
 
                     <label
@@ -274,9 +255,7 @@
                 </div>
 
 
-                {{-- =====================================================
-                     DATE FROM
-                ====================================================== --}}
+                {{-- From Date --}}
                 <div class="col-md-4">
 
                     <label
@@ -296,9 +275,7 @@
                 </div>
 
 
-                {{-- =====================================================
-                     DATE TO
-                ====================================================== --}}
+                {{-- To Date --}}
                 <div class="col-md-4">
 
                     <label
@@ -320,9 +297,7 @@
             </div>
 
 
-            {{-- =====================================================
-                 FILTER ACTION BUTTONS
-            ====================================================== --}}
+            {{-- Filter Action Buttons --}}
             <div class="d-flex flex-wrap gap-2 mt-4">
 
                 <button
@@ -358,15 +333,13 @@
 <div class="row g-3">
 
 
-    {{-- =====================================================
-         REQUESTS BY DEPARTMENT
-    ====================================================== --}}
+    {{-- Requests by Division --}}
     <div class="col-md-6">
 
         <div class="card stat-card p-3 h-100">
 
             <strong class="mb-2 d-block">
-                Requests by Department
+                Requests by Division
             </strong>
 
             <div class="table-responsive">
@@ -375,12 +348,12 @@
 
                     <tbody>
 
-                        @forelse($byDepartment as $row)
+                        @forelse($byDivision as $row)
 
                             <tr>
 
                                 <td>
-                                    {{ $row->department->name ?? 'Unknown' }}
+                                    {{ $row->division?->name ?? 'Unknown' }}
                                 </td>
 
                                 <td class="text-end fw-semibold">
@@ -410,9 +383,7 @@
     </div>
 
 
-    {{-- =====================================================
-         REQUESTS BY STATUS
-    ====================================================== --}}
+    {{-- Requests by Status --}}
     <div class="col-md-6">
 
         <div class="card stat-card p-3 h-100">
@@ -462,9 +433,7 @@
     </div>
 
 
-    {{-- =====================================================
-         REQUESTS BY CATEGORY
-    ====================================================== --}}
+    {{-- Requests by Category --}}
     <div class="col-md-6">
 
         <div class="card stat-card p-3 h-100">
@@ -484,7 +453,7 @@
                             <tr>
 
                                 <td>
-                                    {{ $row->category->name ?? 'Uncategorized' }}
+                                    {{ $row->category?->name ?? 'Uncategorized' }}
                                 </td>
 
                                 <td class="text-end fw-semibold">
@@ -514,9 +483,7 @@
     </div>
 
 
-    {{-- =====================================================
-         REQUESTS BY TECHNICAL OFFICER
-    ====================================================== --}}
+    {{-- Requests by Technical Officer --}}
     <div class="col-md-6">
 
         <div class="card stat-card p-3 h-100">
@@ -536,7 +503,7 @@
                             <tr>
 
                                 <td>
-                                    {{ $row->assignedTo->name ?? 'Unassigned' }}
+                                    {{ $row->assignedTo?->name ?? 'Unassigned' }}
                                 </td>
 
                                 <td class="text-end fw-semibold">
@@ -569,98 +536,294 @@
 
 
 {{-- =========================================================
-     MINISTRY -> DEPARTMENT DEPENDENT DROPDOWN
+     FLOOR -> DIVISION -> AREA DEPENDENT DROPDOWNS
 ========================================================= --}}
 <script>
 
-        document.addEventListener('DOMContentLoaded', function () {
+function toTitleCase(text) {
+    if (!text) return '';
 
-            const floorSelect =
-                document.getElementById('reportFloor');
+    return text
+        .toLowerCase()
+        .replace(/\b\w/g, function (char) {
+            return char.toUpperCase();
+        });
+}
 
-            const divisionSelect =
-                document.getElementById('reportDivision');
 
-            const clearButton =
-                document.getElementById('clearReportFilters');
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
 
-            /*
-            * Save all divisions.
-            */
-            const allDivisions = Array.from(
-                divisionSelect.querySelectorAll(
-                    'option[data-floor]'
-                )
-            ).map(function (option) {
+        const floorSelect =
+            document.getElementById('reportFloor');
 
-                return {
-                    value: option.value,
-                    text: option.textContent.trim(),
-                    floor: option.dataset.floor
-                };
+        const divisionSelect =
+            document.getElementById('reportDivision');
 
-            });
+        const areaSelect =
+            document.getElementById('reportArea');
 
-            /*
-            * Filter divisions using selected floor.
-            */
-            function updateDivisions() {
+        const clearButton =
+            document.getElementById('clearReportFilters');
 
-                const selectedFloor =
-                    floorSelect.value;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Load Divisions
+        |--------------------------------------------------------------------------
+        */
+
+        async function loadDivisions(floorId) {
+
+            areaSelect.disabled = true;
+
+            areaSelect.innerHTML =
+                '<option value="">Select Division First</option>';
+
+
+            if (!floorId) {
+
+                divisionSelect.disabled = true;
+
+                divisionSelect.innerHTML =
+                    '<option value="">Select Floor First</option>';
+
+                return;
+
+            }
+
+
+            divisionSelect.disabled = true;
+
+            divisionSelect.innerHTML =
+                '<option value="">Loading divisions...</option>';
+
+
+            try {
+
+                const response = await fetch(
+                    `/locations/floors/${floorId}/divisions`,
+                    {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    }
+                );
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        'Unable to load divisions.'
+                    );
+                }
+
+
+                const divisions =
+                    await response.json();
+
 
                 divisionSelect.innerHTML =
                     '<option value="">All Divisions</option>';
 
-                allDivisions.forEach(function (division) {
 
-                    if (
-                        selectedFloor === ''
-                        ||
-                        division.floor === selectedFloor
-                    ) {
+                divisions.forEach(function (division) {
 
-                        const option =
-                            document.createElement('option');
+                    const option =
+                        document.createElement('option');
 
-                        option.value =
-                            division.value;
+                    option.value =
+                        division.id;
 
-                        option.textContent =
-                            division.text;
+                    option.textContent =
+                        toTitleCase(division.name);
 
-                        option.dataset.floor =
-                            division.floor;
-
-                        divisionSelect.appendChild(
-                            option
-                        );
-
-                    }
+                    divisionSelect.appendChild(
+                        option
+                    );
 
                 });
 
+
+                divisionSelect.disabled = false;
+
+
+            } catch (error) {
+
+                console.error(
+                    'Error loading divisions:',
+                    error
+                );
+
+                divisionSelect.innerHTML =
+                    '<option value="">Unable to load divisions</option>';
+
+                divisionSelect.disabled = true;
+
             }
 
-            floorSelect.addEventListener(
-                'change',
-                updateDivisions
-            );
+        }
 
-            clearButton.addEventListener(
-                'click',
-                function () {
 
-                    setTimeout(function () {
+        /*
+        |--------------------------------------------------------------------------
+        | Load Areas
+        |--------------------------------------------------------------------------
+        */
 
-                        updateDivisions();
+        async function loadAreas(divisionId) {
 
-                    }, 0);
+            if (!divisionId) {
 
+                areaSelect.disabled = true;
+
+                areaSelect.innerHTML =
+                    '<option value="">Select Division First</option>';
+
+                return;
+
+            }
+
+
+            areaSelect.disabled = true;
+
+            areaSelect.innerHTML =
+                '<option value="">Loading areas...</option>';
+
+
+            try {
+
+                const response = await fetch(
+                    `/locations/divisions/${divisionId}/areas`,
+                    {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    }
+                );
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        'Unable to load areas.'
+                    );
                 }
-            );
 
-        });
+
+                const areas =
+                    await response.json();
+
+
+                areaSelect.innerHTML =
+                    '<option value="">All Areas</option>';
+
+
+                areas.forEach(function (area) {
+
+                    const option =
+                        document.createElement('option');
+
+                    option.value =
+                        area.id;
+
+                    option.textContent =
+                        toTitleCase(area.name);
+
+                    areaSelect.appendChild(
+                        option
+                    );
+
+                });
+
+
+                areaSelect.disabled = false;
+
+
+            } catch (error) {
+
+                console.error(
+                    'Error loading areas:',
+                    error
+                );
+
+                areaSelect.innerHTML =
+                    '<option value="">Unable to load areas</option>';
+
+                areaSelect.disabled = true;
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Floor Changed
+        |--------------------------------------------------------------------------
+        */
+
+        floorSelect.addEventListener(
+            'change',
+            function () {
+
+                loadDivisions(
+                    this.value
+                );
+
+            }
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Division Changed
+        |--------------------------------------------------------------------------
+        */
+
+        divisionSelect.addEventListener(
+            'change',
+            function () {
+
+                loadAreas(
+                    this.value
+                );
+
+            }
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Clear Filters
+        |--------------------------------------------------------------------------
+        */
+
+        clearButton.addEventListener(
+            'click',
+            function () {
+
+                setTimeout(
+                    function () {
+
+                        divisionSelect.disabled = true;
+
+                        divisionSelect.innerHTML =
+                            '<option value="">Select Floor First</option>';
+
+                        areaSelect.disabled = true;
+
+                        areaSelect.innerHTML =
+                            '<option value="">Select Division First</option>';
+
+                    },
+                    0
+                );
+
+            }
+        );
+
+    }
+);
 
 </script>
 

@@ -34,12 +34,11 @@
     </div>
     <div class="table-responsive">
         <table class="table mb-0 align-middle">
-            <thead><tr><th>Request No.</th><th>Department</th><th>Title</th><th>Status</th><th>Assigned To</th><th>Date</th></tr></thead>
+            <thead><tr><th>Request No.</th><th>Title</th><th>Status</th><th>Assigned To</th><th>Date</th></tr></thead>
             <tbody>
                 @forelse($recent as $r)
                 <tr>
                     <td><a href="{{ route('requests.show', $r) }}">{{ $r->request_number }}</a></td>
-                    <td>{{ $r->department->name ?? '-' }}</td>
                     <td>{{ $r->title }}</td>
                     <td><span class="badge {{ $r->statusBadgeClass() }}">{{ $r->status }}</span></td>
                     <td>{{ $r->assignedTo->name ?? '-' }}</td>

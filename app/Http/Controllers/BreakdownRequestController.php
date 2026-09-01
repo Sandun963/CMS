@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\Area;
 use App\Models\Attachment;
 use App\Models\BreakdownRequest;
 use App\Models\Category;
 use App\Models\Department;
+use App\Models\Division;
+use App\Models\Floor;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,34 +19,31 @@ class BreakdownRequestController extends Controller
 {
     /**
      * All Requests view.
-     *
-     * IT Head:
-     *      Can see all requests.
-     *
-     * Assign Officer:
-     *      Can see New / Reopened requests immediately
-     *      and requests previously handled by them.
-     *
-     * Technical Officer:
-     *      Can see only jobs assigned to them.
-     *
-     * Ministry User:
-     *      Can see only requests submitted by them.
      */
     public function index(Request $request)
     {
         $user = Auth::user();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Base Query
+        |--------------------------------------------------------------------------
+        */
+
         $query = BreakdownRequest::with([
-            'department',
+            'floor',
+            'division',
+            'areaLocation',
+            'department', // legacy requests
             'requestedBy',
             'category',
             'assignedTo'
         ]);
 
+
         /*
         |--------------------------------------------------------------------------
-        | Role-based request visibility
+        | Role Based Visibility
         |--------------------------------------------------------------------------
         */
 
@@ -65,19 +65,14 @@ class BreakdownRequestController extends Controller
 
             $query->where(function ($q) use ($user) {
 
-                /*
-                 * New and Reopened requests
-                 * are immediately visible to Assign Officer.
-                 */
                 $q->whereIn(
                     'status',
-                    ['New', 'Reopened']
+                    [
+                        'New',
+                        'Reopened'
+                    ]
                 )
 
-                /*
-                 * Also show requests previously
-                 * handled by this Assign Officer.
-                 */
                 ->orWhereHas(
                     'assignments',
                     function ($assignmentQuery) use ($user) {
@@ -94,14 +89,10 @@ class BreakdownRequestController extends Controller
 
         }
 
-        /*
-         * IT Head sees everything,
-         * so no additional restriction is needed.
-         */
 
         /*
         |--------------------------------------------------------------------------
-        | Filters
+        | Status Filter
         |--------------------------------------------------------------------------
         */
 
@@ -114,14 +105,44 @@ class BreakdownRequestController extends Controller
 
         }
 
-        if ($request->filled('department_id')) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Floor Filter
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('floor_id')) {
 
             $query->where(
-                'department_id',
-                $request->department_id
+                'floor_id',
+                $request->floor_id
             );
 
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Division Filter
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('division_id')) {
+
+            $query->where(
+                'division_id',
+                $request->division_id
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Search
+        |--------------------------------------------------------------------------
+        */
 
         if ($request->filled('q')) {
 
@@ -134,6 +155,7 @@ class BreakdownRequestController extends Controller
                     'like',
                     "%{$search}%"
                 )
+
                 ->orWhere(
                     'title',
                     'like',
@@ -144,9 +166,10 @@ class BreakdownRequestController extends Controller
 
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | Get requests
+        | Get Requests
         |--------------------------------------------------------------------------
         */
 
@@ -155,60 +178,66 @@ class BreakdownRequestController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        $departments = Department::orderBy('name')
+
+        /*
+        |--------------------------------------------------------------------------
+        | Floors For Filter
+        |--------------------------------------------------------------------------
+        */
+
+        $floors = Floor::where(
+                'is_active',
+                true
+            )
+            ->orderBy('id')
             ->get();
+
 
         return view(
             'requests.index',
             compact(
                 'requests',
-                'departments'
+                'floors'
             )
         );
     }
+
 
     /**
      * Show request creation page.
      */
     public function create()
     {
-        $categories = Category::where('is_active', true)
+        /*
+        |--------------------------------------------------------------------------
+        | Categories
+        |--------------------------------------------------------------------------
+        */
+
+        $categories = Category::where(
+                'is_active',
+                true
+            )
             ->orderBy('name')
             ->get();
+
 
         /*
         |--------------------------------------------------------------------------
         | Floors
         |--------------------------------------------------------------------------
-        */
-
-        $floors = Department::where('is_active', true)
-            ->whereNotNull('floor')
-            ->where('floor', '!=', '')
-            ->select('floor')
-            ->distinct()
-            ->orderBy('floor')
-            ->pluck('floor');
-
-        /*
-        |--------------------------------------------------------------------------
-        | Divisions
-        |--------------------------------------------------------------------------
         |
-        | Existing departments table is used.
-        | department.name = Division Name
-        | department.floor = Floor
+        | New location table.
         |
         */
 
-        $divisions = Department::where('is_active', true)
-            ->whereNotNull('floor')
-            ->orderBy('name')
-            ->get([
-                'id',
-                'name',
-                'floor'
-            ]);
+        $floors = Floor::where(
+                'is_active',
+                true
+            )
+            ->orderBy('id')
+            ->get();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -221,28 +250,17 @@ class BreakdownRequestController extends Controller
             []
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Areas
-        |--------------------------------------------------------------------------
-        */
-
-        $areas = config(
-            'breakdown.areas',
-            []
-        );
 
         return view(
             'requests.create',
             compact(
                 'categories',
                 'floors',
-                'divisions',
-                'subCategories',
-                'areas'
+                'subCategories'
             )
         );
     }
+
 
     /**
      * Store new breakdown request.
@@ -250,6 +268,7 @@ class BreakdownRequestController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -264,14 +283,15 @@ class BreakdownRequestController extends Controller
                 'exists:categories,id'
             ],
 
+
             /*
-             * The UI calls this field "Sub Category",
-             * but we continue storing it in the existing
-             * title column.
+             * UI label = Sub Category.
+             * Stored in existing title column.
              */
             'title' => [
                 'required',
                 'string',
+
                 Rule::in(
                     config(
                         'breakdown.sub_categories',
@@ -280,32 +300,45 @@ class BreakdownRequestController extends Controller
                 ),
             ],
 
+
             'description' => [
                 'nullable',
                 'string'
             ],
 
-            'floor' => [
+
+            /*
+            |--------------------------------------------------------------------------
+            | New Location Fields
+            |--------------------------------------------------------------------------
+            */
+
+            'floor_id' => [
                 'required',
-                'string',
-                'max:255'
+                'integer',
+                'exists:floors,id'
             ],
 
-            'department_id' => [
+
+            'division_id' => [
                 'required',
-                'exists:departments,id'
+                'integer',
+                'exists:divisions,id'
             ],
 
-            'area' => [
+
+            'area_id' => [
                 'required',
-                'string',
-                Rule::in(
-                    config(
-                        'breakdown.areas',
-                        []
-                    )
-                ),
+                'integer',
+                'exists:areas,id'
             ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Machine Owner
+            |--------------------------------------------------------------------------
+            */
 
             'machine_owner_name' => [
                 'required',
@@ -313,11 +346,24 @@ class BreakdownRequestController extends Controller
                 'max:255'
             ],
 
+
             'machine_owner_contact' => [
                 'required',
-                'string',
-                'max:30'
+                'regex:/^[0-9]{10}$/',
             ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Attachments
+            |--------------------------------------------------------------------------
+            */
+
+            'attachments' => [
+                'nullable',
+                'array'
+            ],
+
 
             'attachments.*' => [
                 'nullable',
@@ -328,23 +374,16 @@ class BreakdownRequestController extends Controller
 
         ]);
 
+
         /*
         |--------------------------------------------------------------------------
-        | Extra Floor / Division Validation
+        | Get Floor
         |--------------------------------------------------------------------------
-        |
-        | Make sure the selected division actually belongs
-        | to the selected floor.
-        |
         */
 
-        $division = Department::where(
+        $floor = Floor::where(
                 'id',
-                $data['department_id']
-            )
-            ->where(
-                'floor',
-                $data['floor']
+                $data['floor_id']
             )
             ->where(
                 'is_active',
@@ -352,15 +391,84 @@ class BreakdownRequestController extends Controller
             )
             ->first();
 
+
+        if (! $floor) {
+
+            return back()
+                ->withErrors([
+                    'floor_id' =>
+                        'The selected floor is invalid.'
+                ])
+                ->withInput();
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Division belongs to Floor
+        |--------------------------------------------------------------------------
+        */
+
+        $division = Division::where(
+                'id',
+                $data['division_id']
+            )
+            ->where(
+                'floor_id',
+                $floor->id
+            )
+            ->where(
+                'is_active',
+                true
+            )
+            ->first();
+
+
         if (! $division) {
 
             return back()
                 ->withErrors([
-                    'department_id' =>
+                    'division_id' =>
                         'The selected division does not belong to the selected floor.'
                 ])
                 ->withInput();
+
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Area belongs to Division
+        |--------------------------------------------------------------------------
+        */
+
+        $area = Area::where(
+                'id',
+                $data['area_id']
+            )
+            ->where(
+                'division_id',
+                $division->id
+            )
+            ->where(
+                'is_active',
+                true
+            )
+            ->first();
+
+
+        if (! $area) {
+
+            return back()
+                ->withErrors([
+                    'area_id' =>
+                        'The selected area does not belong to the selected division.'
+                ])
+                ->withInput();
+
+        }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -373,41 +481,75 @@ class BreakdownRequestController extends Controller
             'request_number' =>
                 $this->generateRequestNumber(),
 
+
+            /*
+             * Old Department system is no longer used
+             * for new location selections.
+             */
             'department_id' =>
-                $data['department_id'],
+                null,
+
+
+            /*
+             * New relational location fields.
+             */
+            'floor_id' =>
+                $floor->id,
+
+            'division_id' =>
+                $division->id,
+
+            'area_id' =>
+                $area->id,
+
 
             'requested_by' =>
                 $user->id,
 
+
             'category_id' =>
                 $data['category_id'] ?? null,
 
+
             /*
-             * Existing database column.
+             * Existing title column.
              * UI label = Sub Category.
              */
             'title' =>
                 $data['title'],
 
+
             'description' =>
                 $data['description'] ?? null,
+
 
             'status' =>
                 'New',
 
+
             'received_at' =>
                 now(),
 
+
+            /*
+             * Keep old area text column temporarily.
+             *
+             * This prevents older pages/reports that display
+             * $breakdownRequest->area from breaking.
+             */
             'area' =>
-                $data['area'],
+                $area->name,
+
 
             'machine_owner_name' =>
                 $data['machine_owner_name'],
+
 
             'machine_owner_contact' =>
                 $data['machine_owner_contact'],
 
         ]);
+
 
         /*
         |--------------------------------------------------------------------------
@@ -421,6 +563,7 @@ class BreakdownRequestController extends Controller
             $user
         );
 
+
         /*
         |--------------------------------------------------------------------------
         | Activity Log
@@ -433,6 +576,7 @@ class BreakdownRequestController extends Controller
             'Submitted request',
             $breakdown->title
         );
+
 
         /*
         |--------------------------------------------------------------------------
@@ -451,6 +595,7 @@ class BreakdownRequestController extends Controller
             );
     }
 
+
     /**
      * Show individual breakdown request.
      */
@@ -458,6 +603,7 @@ class BreakdownRequestController extends Controller
         BreakdownRequest $breakdownRequest
     ) {
         $user = Auth::user();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -470,6 +616,7 @@ class BreakdownRequestController extends Controller
             $breakdownRequest
         );
 
+
         /*
         |--------------------------------------------------------------------------
         | Load Relationships
@@ -478,7 +625,21 @@ class BreakdownRequestController extends Controller
 
         $breakdownRequest->load([
 
+            /*
+             * Legacy Department relationship.
+             */
             'department',
+
+
+            /*
+             * New location relationships.
+             */
+            'floor',
+
+            'division',
+
+            'areaLocation',
+
 
             'requestedBy',
 
@@ -502,6 +663,7 @@ class BreakdownRequestController extends Controller
 
         ]);
 
+
         /*
         |--------------------------------------------------------------------------
         | Assign Officers
@@ -521,6 +683,7 @@ class BreakdownRequestController extends Controller
                 true
             )
             ->get();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -542,11 +705,6 @@ class BreakdownRequestController extends Controller
             )
             ->get();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Return View
-        |--------------------------------------------------------------------------
-        */
 
         return view(
             'requests.show',
@@ -558,6 +716,7 @@ class BreakdownRequestController extends Controller
         );
     }
 
+
     /**
      * Authorize request visibility.
      */
@@ -567,54 +726,76 @@ class BreakdownRequestController extends Controller
     ): void {
 
         /*
-         * IT Head can view everything.
-         */
+        |--------------------------------------------------------------------------
+        | IT Head
+        |--------------------------------------------------------------------------
+        */
+
         if ($user->isItHead()) {
+
             return;
+
         }
 
+
         /*
-         * Ministry User:
-         * only their own requests.
-         */
+        |--------------------------------------------------------------------------
+        | Ministry User
+        |--------------------------------------------------------------------------
+        */
+
         if (
             $user->isMinistryUser()
             &&
-            $breakdownRequest->requested_by
-                === $user->id
+            $breakdownRequest->requested_by ===
+                $user->id
         ) {
+
             return;
+
         }
 
+
         /*
-         * Technical Officer:
-         * only their assigned requests.
-         */
+        |--------------------------------------------------------------------------
+        | Technical Officer
+        |--------------------------------------------------------------------------
+        */
+
         if (
             $user->isTechnicalOfficer()
             &&
-            $breakdownRequest->assigned_to
-                === $user->id
+            $breakdownRequest->assigned_to ===
+                $user->id
         ) {
+
             return;
+
         }
 
+
         /*
-         * Assign Officer:
-         *
-         * Can view all New and Reopened requests,
-         * plus requests they previously handled.
-         */
+        |--------------------------------------------------------------------------
+        | Assign Officer
+        |--------------------------------------------------------------------------
+        */
+
         if ($user->isAssignOfficer()) {
 
             if (
                 in_array(
                     $breakdownRequest->status,
-                    ['New', 'Reopened']
+                    [
+                        'New',
+                        'Reopened'
+                    ]
                 )
             ) {
+
                 return;
+
             }
+
 
             if (
                 $breakdownRequest
@@ -625,19 +806,26 @@ class BreakdownRequestController extends Controller
                     )
                     ->exists()
             ) {
+
                 return;
+
             }
 
         }
 
+
         /*
-         * Otherwise deny.
-         */
+        |--------------------------------------------------------------------------
+        | Otherwise Deny
+        |--------------------------------------------------------------------------
+        */
+
         abort(
             403,
             'You do not have access to this request.'
         );
     }
+
 
     /**
      * Generate request number.
@@ -649,6 +837,7 @@ class BreakdownRequestController extends Controller
     {
         $year = now()->year;
 
+
         $count = BreakdownRequest::whereYear(
                 'created_at',
                 $year
@@ -656,12 +845,14 @@ class BreakdownRequestController extends Controller
             ->count()
             + 1;
 
+
         return sprintf(
             'BRK-%d-%04d',
             $year,
             $count
         );
     }
+
 
     /**
      * Store request attachments.
@@ -673,53 +864,67 @@ class BreakdownRequestController extends Controller
     ): void {
 
         /*
-         * Nothing uploaded.
-         */
+        |--------------------------------------------------------------------------
+        | No Attachments
+        |--------------------------------------------------------------------------
+        */
+
         if (! $request->hasFile('attachments')) {
+
             return;
+
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Store Attachments
+        |--------------------------------------------------------------------------
+        */
 
         foreach (
             $request->file('attachments')
             as $file
         ) {
 
-            /*
-             * Store file.
-             */
             $path = $file->store(
                 'attachments/requests/' .
                 $breakdown->id,
                 'public'
             );
 
-            /*
-             * Save attachment record.
-             */
+
             Attachment::create([
 
                 'attachable_id' =>
                     $breakdown->id,
 
+
                 'attachable_type' =>
                     BreakdownRequest::class,
+
 
                 'uploaded_by' =>
                     $user->id,
 
+
                 'original_name' =>
                     $file->getClientOriginalName(),
+
 
                 'path' =>
                     $path,
 
+
                 'mime_type' =>
                     $file->getClientMimeType(),
+
 
                 'size' =>
                     $file->getSize(),
 
             ]);
+
         }
     }
 }

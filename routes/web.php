@@ -10,6 +10,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkReportController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LocationController;
 
 Route::get('/', fn () => redirect()->route('login'));
 
@@ -19,6 +20,16 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.attempt');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
+
+    Route::get(
+        '/locations/floors/{floor}/divisions',
+        [LocationController::class, 'divisions']
+    )->name('locations.divisions');
+
+    Route::get(
+        '/locations/divisions/{division}/areas',
+        [LocationController::class, 'areas']
+    )->name('locations.areas');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
