@@ -32,15 +32,68 @@
                     @endforeach
                 </select>
             </div>
+
             <div class="col-md-6 mb-3">
-                <label class="form-label small fw-semibold">Department</label>
-                <select name="department_id" class="form-select">
-                    <option value="">N/A</option>
-                    @foreach($departments as $d)
-                    <option value="{{ $d->id }}" @selected(old('department_id', $user->department_id) == $d->id)>{{ $d->name }}</option>
+
+                <label class="form-label small fw-semibold">
+                    Floor
+                </label>
+
+                <select name="floor_id"
+                        id="floor_id"
+                        class="form-select">
+
+                    <option value="">Select Floor</option>
+
+                    @foreach($floors as $floor)
+
+                        <option value="{{ $floor->id }}"
+                            @selected(
+                                old('floor_id', $user->floor_id)
+                                == $floor->id
+                            )>
+
+                            {{ $floor->name }}
+
+                        </option>
+
                     @endforeach
+
                 </select>
+
             </div>
+
+
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label small fw-semibold">
+                    Division
+                </label>
+
+                <select name="division_id"
+                        id="division_id"
+                        class="form-select">
+
+                    <option value="">Select Division</option>
+
+                    @foreach($divisions as $division)
+
+                        <option value="{{ $division->id }}"
+                            @selected(
+                                old('division_id', $user->division_id)
+                                == $division->id
+                            )>
+
+                            {{ $division->name }}
+
+                        </option>
+
+                    @endforeach
+
+                </select>
+
+            </div>
+
             <div class="col-md-6 mb-3">
                 <label class="form-label small fw-semibold">Phone</label>
                 <input type="text" name="phone" class="form-control" value="{{ old('phone', $user->phone) }}">
@@ -59,4 +112,45 @@
     </form>
 </div>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const floorSelect = document.getElementById('floor_id');
+    const divisionSelect = document.getElementById('division_id');
+
+    floorSelect.addEventListener('change', function () {
+
+        const floorId = this.value;
+
+        divisionSelect.innerHTML =
+            '<option value="">Select Division</option>';
+
+        if (!floorId) {
+            return;
+        }
+
+        fetch(`/locations/floors/${floorId}/divisions`)
+            .then(response => response.json())
+            .then(divisions => {
+
+                divisions.forEach(division => {
+
+                    const option = document.createElement('option');
+
+                    option.value = division.id;
+                    option.textContent = division.name;
+
+                    divisionSelect.appendChild(option);
+                });
+
+            })
+            .catch(error => {
+                console.error('Error loading divisions:', error);
+            });
+
+    });
+
+});
+</script>
 @endsection

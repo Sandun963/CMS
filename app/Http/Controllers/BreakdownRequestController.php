@@ -7,7 +7,6 @@ use App\Models\Area;
 use App\Models\Attachment;
 use App\Models\BreakdownRequest;
 use App\Models\Category;
-use App\Models\Department;
 use App\Models\Division;
 use App\Models\Floor;
 use App\Models\User;
@@ -24,6 +23,7 @@ class BreakdownRequestController extends Controller
     {
         $user = Auth::user();
 
+
         /*
         |--------------------------------------------------------------------------
         | Base Query
@@ -34,10 +34,13 @@ class BreakdownRequestController extends Controller
             'floor',
             'division',
             'areaLocation',
-            'department', // legacy requests
+
+            // Legacy relationship - kept temporarily
+            'department',
+
             'requestedBy',
             'category',
-            'assignedTo'
+            'assignedTo',
         ]);
 
 
@@ -45,9 +48,38 @@ class BreakdownRequestController extends Controller
         |--------------------------------------------------------------------------
         | Role Based Visibility
         |--------------------------------------------------------------------------
+        |
+        | Super Admin:
+        |   Can view all requests.
+        |
+        | Administrator:
+        |   Can view all requests for monitoring.
+        |
+        | Ministry User:
+        |   Can view only requests submitted by themselves.
+        |
+        | Technical Officer:
+        |   Can view only requests assigned to themselves.
+        |
+        | Assign Officer:
+        |   Can view New/Reopened requests and requests assigned to them.
+        |
         */
 
-        if ($user->isMinistryUser()) {
+        if (
+            $user->isSuperAdmin()
+            ||
+            $user->isAdministrator()
+        ) {
+
+            /*
+             * No query restriction.
+             *
+             * Super Admin and Administrator
+             * can view all breakdown requests.
+             */
+
+        } elseif ($user->isMinistryUser()) {
 
             $query->where(
                 'requested_by',
@@ -69,7 +101,7 @@ class BreakdownRequestController extends Controller
                     'status',
                     [
                         'New',
-                        'Reopened'
+                        'Reopened',
                     ]
                 )
 
@@ -87,6 +119,19 @@ class BreakdownRequestController extends Controller
 
             });
 
+        } else {
+
+            /*
+             * Safety protection.
+             *
+             * Any unknown role must not automatically
+             * gain access to all requests.
+             */
+
+            abort(
+                403,
+                'You do not have access to breakdown requests.'
+            );
         }
 
 
@@ -102,7 +147,6 @@ class BreakdownRequestController extends Controller
                 'status',
                 $request->status
             );
-
         }
 
 
@@ -118,7 +162,6 @@ class BreakdownRequestController extends Controller
                 'floor_id',
                 $request->floor_id
             );
-
         }
 
 
@@ -134,7 +177,6 @@ class BreakdownRequestController extends Controller
                 'division_id',
                 $request->division_id
             );
-
         }
 
 
@@ -163,7 +205,6 @@ class BreakdownRequestController extends Controller
                 );
 
             });
-
         }
 
 
@@ -280,7 +321,7 @@ class BreakdownRequestController extends Controller
 
             'category_id' => [
                 'nullable',
-                'exists:categories,id'
+                'exists:categories,id',
             ],
 
 
@@ -288,6 +329,7 @@ class BreakdownRequestController extends Controller
              * UI label = Sub Category.
              * Stored in existing title column.
              */
+
             'title' => [
                 'required',
                 'string',
@@ -303,7 +345,7 @@ class BreakdownRequestController extends Controller
 
             'description' => [
                 'nullable',
-                'string'
+                'string',
             ],
 
 
@@ -316,21 +358,21 @@ class BreakdownRequestController extends Controller
             'floor_id' => [
                 'required',
                 'integer',
-                'exists:floors,id'
+                'exists:floors,id',
             ],
 
 
             'division_id' => [
                 'required',
                 'integer',
-                'exists:divisions,id'
+                'exists:divisions,id',
             ],
 
 
             'area_id' => [
                 'required',
                 'integer',
-                'exists:areas,id'
+                'exists:areas,id',
             ],
 
 
@@ -343,7 +385,7 @@ class BreakdownRequestController extends Controller
             'machine_owner_name' => [
                 'required',
                 'string',
-                'max:255'
+                'max:255',
             ],
 
 
@@ -361,7 +403,7 @@ class BreakdownRequestController extends Controller
 
             'attachments' => [
                 'nullable',
-                'array'
+                'array',
             ],
 
 
@@ -369,7 +411,7 @@ class BreakdownRequestController extends Controller
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf'
+                'mimes:jpg,jpeg,png,pdf',
             ],
 
         ]);
@@ -397,10 +439,9 @@ class BreakdownRequestController extends Controller
             return back()
                 ->withErrors([
                     'floor_id' =>
-                        'The selected floor is invalid.'
+                        'The selected floor is invalid.',
                 ])
                 ->withInput();
-
         }
 
 
@@ -430,10 +471,9 @@ class BreakdownRequestController extends Controller
             return back()
                 ->withErrors([
                     'division_id' =>
-                        'The selected division does not belong to the selected floor.'
+                        'The selected division does not belong to the selected floor.',
                 ])
                 ->withInput();
-
         }
 
 
@@ -463,10 +503,9 @@ class BreakdownRequestController extends Controller
             return back()
                 ->withErrors([
                     'area_id' =>
-                        'The selected area does not belong to the selected division.'
+                        'The selected area does not belong to the selected division.',
                 ])
                 ->withInput();
-
         }
 
 
@@ -486,6 +525,7 @@ class BreakdownRequestController extends Controller
              * Old Department system is no longer used
              * for new location selections.
              */
+
             'department_id' =>
                 null,
 
@@ -493,6 +533,7 @@ class BreakdownRequestController extends Controller
             /*
              * New relational location fields.
              */
+
             'floor_id' =>
                 $floor->id,
 
@@ -515,6 +556,7 @@ class BreakdownRequestController extends Controller
              * Existing title column.
              * UI label = Sub Category.
              */
+
             'title' =>
                 $data['title'],
 
@@ -537,12 +579,13 @@ class BreakdownRequestController extends Controller
              * This prevents older pages/reports that display
              * $breakdownRequest->area from breaking.
              */
+
             'area' =>
                 $area->name,
 
 
             'machine_owner_name' =>
-                $data['machine_owner_name'],
+                strtoupper($data['machine_owner_name']),
 
 
             'machine_owner_contact' =>
@@ -627,13 +670,16 @@ class BreakdownRequestController extends Controller
 
             /*
              * Legacy Department relationship.
+             * Kept temporarily for older data.
              */
+
             'department',
 
 
             /*
              * New location relationships.
              */
+
             'floor',
 
             'division',
@@ -727,14 +773,23 @@ class BreakdownRequestController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | IT Head
+        | Super Admin / Administrator
         |--------------------------------------------------------------------------
+        |
+        | Both roles can view every breakdown request.
+        |
+        | This only grants VIEW access.
+        | Workflow actions are protected separately by route middleware.
+        |
         */
 
-        if ($user->isItHead()) {
+        if (
+            $user->isSuperAdmin()
+            ||
+            $user->isAdministrator()
+        ) {
 
             return;
-
         }
 
 
@@ -752,7 +807,6 @@ class BreakdownRequestController extends Controller
         ) {
 
             return;
-
         }
 
 
@@ -770,7 +824,6 @@ class BreakdownRequestController extends Controller
         ) {
 
             return;
-
         }
 
 
@@ -782,20 +835,30 @@ class BreakdownRequestController extends Controller
 
         if ($user->isAssignOfficer()) {
 
+            /*
+             * Assign Officer can see requests waiting
+             * for assignment/reassignment.
+             */
+
             if (
                 in_array(
                     $breakdownRequest->status,
                     [
                         'New',
-                        'Reopened'
-                    ]
+                        'Reopened',
+                    ],
+                    true
                 )
             ) {
 
                 return;
-
             }
 
+
+            /*
+             * Assign Officer can also see requests
+             * previously assigned to them.
+             */
 
             if (
                 $breakdownRequest
@@ -808,9 +871,7 @@ class BreakdownRequestController extends Controller
             ) {
 
                 return;
-
             }
-
         }
 
 
@@ -872,7 +933,6 @@ class BreakdownRequestController extends Controller
         if (! $request->hasFile('attachments')) {
 
             return;
-
         }
 
 
@@ -924,7 +984,6 @@ class BreakdownRequestController extends Controller
                     $file->getSize(),
 
             ]);
-
         }
     }
 }

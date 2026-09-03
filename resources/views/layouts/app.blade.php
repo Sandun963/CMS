@@ -65,7 +65,7 @@
             background: linear-gradient(180deg, #111827 0%, #374151 100%);
         }
 
-        /* IT Head / Admin */
+        /* Administrator */
         .sidebar-admin {
             background: linear-gradient(180deg, #7a1830 0%, #941e3b 100%);
         }
@@ -135,7 +135,7 @@
     if(auth()->check()) {
         if(auth()->user()->isSuperAdmin()) {
             $sidebarClass = 'sidebar-superadmin';
-        }elseif(auth()->user()->isItHead()) {
+        }elseif(auth()->user()->isAdministrator()) {
             $sidebarClass = 'sidebar-admin';
         } elseif(auth()->user()->isAssignOfficer()) {
             $sidebarClass = 'sidebar-assign';
@@ -200,9 +200,9 @@
 
 
                 {{-- ========================= --}}
-                {{-- IT HEAD --}}
+                {{-- ADMINISTRATOR --}}
                 {{-- ========================= --}}
-                @elseif(auth()->user()->isItHead())
+                @elseif(auth()->user()->isAdministrator())
 
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('requests.*') ? 'active' : '' }}"

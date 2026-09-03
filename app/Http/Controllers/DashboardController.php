@@ -14,7 +14,7 @@ class DashboardController extends Controller
 
         return match ($user->role->code) {
             'sup_admin' => $this->superAdminDashboard(),
-            'it_head' => $this->itHeadDashboard(),
+            'administrator' => $this->administratorDashboard(),
             'assign_officer' => $this->assignOfficerDashboard($user),
             'technical_officer' => $this->technicalOfficerDashboard($user),
             'ministry_user' => $this->ministryUserDashboard($user),
@@ -65,7 +65,7 @@ class DashboardController extends Controller
     }
 
 
-    protected function itHeadDashboard()
+    protected function administratorDashboard()
     {
         $counts = [
             'new' => BreakdownRequest::where('status', 'New')->count(),
@@ -81,7 +81,7 @@ class DashboardController extends Controller
             ->limit(8)
             ->get();
 
-        return view('dashboard.it_head', compact('counts', 'recent'));
+        return view('dashboard.administrator', compact('counts', 'recent'));
     }
 
     protected function assignOfficerDashboard($user)
@@ -143,7 +143,9 @@ class DashboardController extends Controller
 
     protected function technicalOfficerDashboard($user)
     {
-        $jobs = \App\Models\OfficerAssignment::with(['assignment.request.department'])
+        $jobs = \App\Models\OfficerAssignment::with([
+            'assignment.request.division'
+        ])
             ->where('technical_officer_id', $user->id);
 
         $counts = [

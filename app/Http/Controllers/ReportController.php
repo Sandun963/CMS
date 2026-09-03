@@ -19,7 +19,7 @@ class ReportController extends Controller
      */
     public function index(Request $request)
     {
-        abort_unless(Auth::user()->isItHead(), 403);
+        abort_unless(Auth::user()->isAdministrator(), 403);
 
         /*
         |--------------------------------------------------------------------------
@@ -122,7 +122,7 @@ class ReportController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        abort_unless(Auth::user()->isItHead(), 403);
+        abort_unless(Auth::user()->isAdministrator(), 403);
 
         $query = BreakdownRequest::with([
             'department',

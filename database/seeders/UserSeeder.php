@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
     {
         // Get fixed roles
         $superAdmin = Role::where('code', 'sup_admin')->firstOrFail();
-        $itHead = Role::where('code', 'it_head')->firstOrFail();
+        $administrator = Role::where('code', 'administrator')->firstOrFail();
         $assignOfficer = Role::where('code', 'assign_officer')->firstOrFail();
         $techOfficer = Role::where('code', 'technical_officer')->firstOrFail();
         $ministryUser = Role::where('code', 'ministry_user')->firstOrFail();
@@ -50,10 +50,10 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'ithead@example.com'],
             [
-                'name' => 'IT Head Admin',
+                'name' => 'IT Admin',
                 'username' => 'ithead',
                 'password' => $password,
-                'role_id' => $itHead->id,
+                'role_id' => $administrator->id,
                 'is_active' => true,
             ]
         );

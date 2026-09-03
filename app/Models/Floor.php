@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Floor extends Model
 {
+    protected $primaryKey = 'floor_id';
+
     protected $fillable = [
         'name',
         'is_active',
@@ -13,6 +15,10 @@ class Floor extends Model
 
     public function divisions()
     {
-        return $this->hasMany(Division::class);
+        return $this->hasMany(
+            Division::class,
+            'floor_id',
+            'floor_id'
+        );
     }
 }

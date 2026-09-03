@@ -31,19 +31,19 @@
     </div>
     <div class="table-responsive">
         <table class="table mb-0 align-middle">
-            <thead><tr><th>Request No.</th><th>Department</th><th>Problem</th><th>Status</th><th>Due Date</th><th></th></tr></thead>
+            <thead><tr><th>Request No.</th><th>Division</th><th>Problem</th><th>Status</th><th>Due Date</th><th></th></tr></thead>
             <tbody>
                 @forelse($myJobs as $job)
                 <tr>
                     <td>{{ $job->assignment->request->request_number }}</td>
-                    <td>{{ $job->assignment->request->department->name ?? '-' }}</td>
+                    <td>{{ $job->assignment->request->division?->name ?? '-' }}</td>
                     <td>{{ $job->assignment->request->title }}</td>
                     <td><span class="badge {{ $job->assignment->request->statusBadgeClass() }}">{{ $job->assignment->request->status }}</span></td>
                     <td>{{ optional($job->due_date)->format('d/m/Y') ?? '-' }}</td>
                     <td><a href="{{ route('requests.show', $job->assignment->request) }}" class="btn btn-sm btn-primary">Open</a></td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="text-center text-muted py-4">No jobs assigned yet.</td></tr>
+                <tr><td colspan="6" class="text-center text-muted py-4">No jobs assigned yet.</td></tr>
                 @endforelse
             </tbody>
         </table>

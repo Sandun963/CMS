@@ -12,8 +12,8 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'username', 'password', 'role_id',
-        'department_id', 'phone', 'specialty', 'is_active',
+        'name', 'email', 'username', 'password', 'role_id', 'floor_id',
+        'division_id', 'department_id', 'phone', 'specialty', 'is_active',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -42,9 +42,9 @@ class User extends Authenticatable
         return $this->role?->code === 'sup_admin';
     }
 
-    public function isItHead(): bool
+    public function isAdministrator(): bool
     {
-        return $this->role?->code === Role::IT_HEAD;
+        return $this->role?->code === Role::ADMINISTRATOR;
     }
 
     public function isAssignOfficer(): bool
@@ -80,5 +80,15 @@ class User extends Authenticatable
     public function officerAssignmentsAsTechnician()
     {
         return $this->hasMany(OfficerAssignment::class, 'technical_officer_id');
+    }
+
+    public function floor()
+    {
+        return $this->belongsTo(Floor::class);
+    }
+
+    public function division()
+    {
+        return $this->belongsTo(Division::class);
     }
 }

@@ -188,7 +188,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | IT Head / Administrator
+    | Administrator
     |--------------------------------------------------------------------------
     |
     | IT Head does NOT manage user accounts.
@@ -201,7 +201,7 @@ Route::middleware('auth')->group(function () {
     |
     */
 
-    Route::middleware('role:it_head')->group(function () {
+    Route::middleware('role:administrator')->group(function () {
 
         Route::get(
             '/reports',

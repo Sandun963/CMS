@@ -15,7 +15,7 @@ class AssignmentController extends Controller
      */
     public function store(Request $request, BreakdownRequest $breakdownRequest)
     {
-        abort_unless(Auth::user()->isItHead(), 403);
+        abort_unless(Auth::user()->isAdministrator(), 403);
 
         $data = $request->validate([
             'assign_officer_id' => ['required', 'exists:users,id'],

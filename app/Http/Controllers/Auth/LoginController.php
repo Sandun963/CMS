@@ -35,7 +35,7 @@ class LoginController extends Controller
 
             if (! $user->is_active) {
                 Auth::logout();
-                return back()->withErrors(['username' => 'Your account has been deactivated. Contact the IT Head.']);
+                return back()->withErrors(['username' => 'Your account has been deactivated. Contact the System Administrator.']);
             }
 
             ActivityLog::log(null, $user->id, 'Logged in');
