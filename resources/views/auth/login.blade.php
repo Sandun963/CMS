@@ -86,7 +86,8 @@
         Technical Officer A: <code>techofficer</code><br>
         Technical Officer B: <code>techofficerb</code><br>
         Department User: <code>deptuser</code><br>
-        HR Department User: <code>hruser</code>
+        HR Department User: <code>hruser</code><br>
+        Username: superadmin
     </div>
 </div>
 </body>

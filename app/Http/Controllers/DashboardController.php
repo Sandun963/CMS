@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BreakdownRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -12,6 +13,7 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         return match ($user->role->code) {
+            'sup_admin' => $this->superAdminDashboard(),
             'it_head' => $this->itHeadDashboard(),
             'assign_officer' => $this->assignOfficerDashboard($user),
             'technical_officer' => $this->technicalOfficerDashboard($user),
@@ -19,6 +21,49 @@ class DashboardController extends Controller
             default => abort(403),
         };
     }
+
+    protected function superAdminDashboard()
+    {
+        $userCounts = [
+            'total' => User::count(),
+            'active' => User::where('is_active', true)->count(),
+            'inactive' => User::where('is_active', false)->count(),
+        ];
+
+        $requestCounts = [
+            'total' => BreakdownRequest::count(),
+            'new' => BreakdownRequest::where('status', 'New')->count(),
+            'in_progress' => BreakdownRequest::where('status', 'In Progress')->count(),
+            'resolved' => BreakdownRequest::where('status', 'Resolved')->count(),
+            'closed' => BreakdownRequest::where('status', 'Closed')->count(),
+        ];
+
+        $recentRequests = BreakdownRequest::with([
+            'assignedTo',
+            'floor',
+            'division',
+            'areaLocation'
+        ])
+            ->latest()
+            ->limit(8)
+            ->get();
+
+        $recentUsers = User::with('role')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        return view(
+            'dashboard.super_admin',
+            compact(
+                'userCounts',
+                'requestCounts',
+                'recentRequests',
+                'recentUsers'
+            )
+        );
+    }
+
 
     protected function itHeadDashboard()
     {

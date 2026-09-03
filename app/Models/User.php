@@ -37,6 +37,11 @@ class User extends Authenticatable
         return $this->belongsTo(Department::class);
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->role?->code === 'sup_admin';
+    }
+
     public function isItHead(): bool
     {
         return $this->role?->code === Role::IT_HEAD;

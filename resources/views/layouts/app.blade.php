@@ -60,6 +60,11 @@
             margin-top: var(--navbar-height);
         }
 
+        /* Super Admin */
+        .sidebar-superadmin {
+            background: linear-gradient(180deg, #111827 0%, #374151 100%);
+        }
+
         /* IT Head / Admin */
         .sidebar-admin {
             background: linear-gradient(180deg, #7a1830 0%, #941e3b 100%);
@@ -128,7 +133,9 @@
     $sidebarClass = 'sidebar-admin';
 
     if(auth()->check()) {
-        if(auth()->user()->isItHead()) {
+        if(auth()->user()->isSuperAdmin()) {
+            $sidebarClass = 'sidebar-superadmin';
+        }elseif(auth()->user()->isItHead()) {
             $sidebarClass = 'sidebar-admin';
         } elseif(auth()->user()->isAssignOfficer()) {
             $sidebarClass = 'sidebar-assign';
@@ -149,27 +156,124 @@
                 IT Department
             </div>
         </div>
+
         <ul class="nav nav-pills flex-column gap-1">
+
+            {{-- Dashboard --}}
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
+                href="{{ route('dashboard') }}">
+                    <i class="bi bi-speedometer2 me-2"></i>
+                    Dashboard
                 </a>
             </li>
+
             @auth
-            @if(auth()->user()->isItHead())
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}"><i class="bi bi-people me-2"></i>Manage Users</a></li>
-            @endif
 
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('requests.index') ? 'active' : '' }}" href="{{ route('requests.index') }}"><i class="bi bi-file-earmark-text me-2"></i>{{ auth()->user()->isMinistryUser() ? 'My Requests' : 'All Requests' }}</a></li>
+                {{-- ========================= --}}
+                {{-- SUPER ADMIN --}}
+                {{-- ========================= --}}
+                @if(auth()->user()->isSuperAdmin())
 
-            @if(auth()->user()->isMinistryUser())
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('requests.create') ? 'active' : '' }}" href="{{ route('requests.create') }}"><i class="bi bi-plus-circle me-2"></i>Submit Request</a></li>
-            @endif
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
+                        href="{{ route('users.index') }}">
+                            <i class="bi bi-people me-2"></i>
+                            Manage Users
+                        </a>
+                    </li>
 
-            @if(auth()->user()->isItHead())
-            <li class="nav-item"><a class="nav-link {{ request()->routeIs('reports.index') ? 'active' : '' }}" href="{{ route('reports.index') }}"><i class="bi bi-bar-chart me-2"></i>Reports</a></li>
-            @endif
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('requests.*') ? 'active' : '' }}"
+                        href="{{ route('requests.index') }}">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            All Requests
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <span class="nav-link text-white-50">
+                            <i class="bi bi-gear me-2"></i>
+                            Settings
+                        </span>
+                    </li>
+
+
+                {{-- ========================= --}}
+                {{-- IT HEAD --}}
+                {{-- ========================= --}}
+                @elseif(auth()->user()->isItHead())
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('requests.*') ? 'active' : '' }}"
+                        href="{{ route('requests.index') }}">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            All Requests
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}"
+                        href="{{ route('reports.index') }}">
+                            <i class="bi bi-bar-chart me-2"></i>
+                            Reports
+                        </a>
+                    </li>
+
+
+                {{-- ========================= --}}
+                {{-- ASSIGN OFFICER --}}
+                {{-- ========================= --}}
+                @elseif(auth()->user()->isAssignOfficer())
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('requests.*') ? 'active' : '' }}"
+                        href="{{ route('requests.index') }}">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            All Requests
+                        </a>
+                    </li>
+
+
+                {{-- ========================= --}}
+                {{-- TECHNICAL OFFICER --}}
+                {{-- ========================= --}}
+                @elseif(auth()->user()->isTechnicalOfficer())
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('requests.*') ? 'active' : '' }}"
+                        href="{{ route('requests.index') }}">
+                            <i class="bi bi-tools me-2"></i>
+                            My Jobs
+                        </a>
+                    </li>
+
+
+                {{-- ========================= --}}
+                {{-- MINISTRY USER --}}
+                {{-- ========================= --}}
+                @elseif(auth()->user()->isMinistryUser())
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('requests.index') ? 'active' : '' }}"
+                        href="{{ route('requests.index') }}">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            My Requests
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('requests.create') ? 'active' : '' }}"
+                        href="{{ route('requests.create') }}">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Submit Request
+                        </a>
+                    </li>
+
+                @endif
+
             @endauth
+
         </ul>
     </nav>
 
