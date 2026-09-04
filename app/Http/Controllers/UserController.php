@@ -47,8 +47,8 @@ class UserController extends Controller
             'username' => ['required', 'string', 'unique:users,username'],
             'password' => ['required', 'string', 'min:6'],
             'role_id' => ['required', 'exists:roles,id'],
-            'floor_id' => [ 'nullable', 'exists:floors,floor_id', ],
-            'division_id' => ['nullable', 'exists:divisions,division_id', ],
+            'floor_id' => ['nullable', 'exists:floors,id'],
+            'division_id' => ['nullable', 'exists:divisions,id'],
             'phone' => ['nullable', 'string'],
             'specialty' => ['nullable', 'string'],
         ]);
@@ -110,8 +110,8 @@ class UserController extends Controller
             'email' => ['required', 'email', 'unique:users,email,' . $user->id],
             'username' => ['required', 'string', 'unique:users,username,' . $user->id],
             'role_id' => ['required', 'exists:roles,id'],
-            'floor_id' => [ 'nullable', 'exists:floors,floor_id', ],
-            'division_id' => ['nullable', 'exists:divisions,division_id', ],
+            'floor_id' => ['nullable', 'exists:floors,id'],
+            'division_id' => ['nullable', 'exists:divisions,id'],
             'phone' => ['nullable', 'string'],
             'specialty' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
@@ -129,6 +129,21 @@ class UserController extends Controller
         $user->update($data);
 
         return redirect()->route('users.index')->with('success', 'User updated.');
+
+        if (! empty($data['division_id'])) {
+
+        $validDivision = Division::where('id', $data['division_id'])
+            ->where('floor_id', $data['floor_id'])
+            ->exists();
+
+        if (! $validDivision) {
+            return back()
+                ->withErrors([
+                    'division_id' => 'The selected division does not belong to the selected floor.'
+                ])
+                ->withInput();
+        }
+    }
     }
 
     public function destroy(User $user)
