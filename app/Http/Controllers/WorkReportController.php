@@ -89,14 +89,29 @@ class WorkReportController extends Controller
             }
         }
 
-        $officerAssignment->update([
-            'status' => $data['completion_status'] === 'Done' ? 'Done' : 'In Progress',
-        ]);
-
         $breakdownRequest = $officerAssignment->assignment->request;
-        $breakdownRequest->update([
-            'status' => $data['completion_status'] === 'Done' ? 'Resolved' : 'In Progress',
-        ]);
+
+        if ($data['completion_status'] === 'Done') {
+
+            $officerAssignment->update([
+                'status' => 'Done',
+            ]);
+
+            $breakdownRequest->update([
+                'status' => 'Resolved',
+            ]);
+
+        } else {
+
+            $officerAssignment->update([
+                'status' => 'Not Done',
+            ]);
+
+            $breakdownRequest->update([
+                'status' => 'Pending Reassignment',
+                'assigned_to' => null,
+            ]);
+        }
 
         ActivityLog::log(
             $breakdownRequest->id,

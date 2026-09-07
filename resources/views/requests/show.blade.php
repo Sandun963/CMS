@@ -266,14 +266,18 @@
              STEP 2
              ASSIGN OFFICER DIRECTLY ASSIGNS TECHNICIAN
         ================================================== --}}
-        @if(
-            $user->isAssignOfficer()
-            &&
-            in_array(
-                $breakdownRequest->status,
-                ['New', 'Reopened']
+            @if(
+                $user->isAssignOfficer()
+                &&
+                in_array(
+                    $breakdownRequest->status,
+                    [
+                        'New',
+                        'Reopened',
+                        'Pending Reassignment'
+                    ]
+                )
             )
-        )
 
             <div
                 class="card stat-card mb-3

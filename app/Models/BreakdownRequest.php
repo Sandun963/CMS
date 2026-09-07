@@ -100,6 +100,7 @@ class BreakdownRequest extends Model
             'Resolved' => 'bg-success',
             'Closed' => 'bg-secondary',
             'Reopened' => 'bg-danger',
+            'Pending Reassignment' => 'bg-danger',
             default => 'bg-secondary',
         };
     }

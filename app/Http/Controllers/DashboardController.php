@@ -87,7 +87,11 @@ class DashboardController extends Controller
     protected function assignOfficerDashboard($user)
     {
         $newRequests = BreakdownRequest::with('department')
-            ->whereIn('status', ['New', 'Reopened'])
+            ->whereIn('status', [
+                'New',
+                'Reopened',
+                'Pending Reassignment'
+            ])
             ->latest();
 
         $assignmentIds = $user->assignmentsAsOfficer()->pluck('id');
@@ -166,7 +170,7 @@ class DashboardController extends Controller
 
         $counts = [
             'my_requests' => (clone $base)->count(),
-            'open' => (clone $base)->whereIn('status', ['New', 'Assigned', 'In Progress'])->count(),
+            'open' => (clone $base) ->whereIn('status', ['New','Assigned','In Progress','Pending Reassignment'])->count(),
             'resolved' => (clone $base)->where('status', 'Resolved')->count(),
             'closed' => (clone $base)->where('status', 'Closed')->count(),
         ];

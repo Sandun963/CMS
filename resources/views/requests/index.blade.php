@@ -82,6 +82,7 @@
                     'New',
                     'Assigned',
                     'In Progress',
+                    'Pending Reassignment',
                     'Resolved',
                     'Closed',
                     'Reopened'

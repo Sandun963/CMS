@@ -22,7 +22,10 @@ class OfficerAssignmentController extends Controller
         abort_unless($user->isAssignOfficer(), 403);
 
         abort_unless(
-            in_array($breakdownRequest->status, ['New', 'Reopened']),
+            in_array(
+                $breakdownRequest->status,
+                ['New', 'Reopened', 'Pending Reassignment']
+            ),
             400,
             'This request cannot be assigned.'
         );
