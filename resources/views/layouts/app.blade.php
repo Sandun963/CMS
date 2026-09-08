@@ -151,10 +151,6 @@
             <img src="{{ asset('images/logo.png') }}"
                 alt="IT Department Logo"
                 class="sidebar-logo mb-2">
-
-            <div class="sidebar-brand-text">
-                IT Department
-            </div>
         </div>
 
         <ul class="nav nav-pills flex-column gap-1">

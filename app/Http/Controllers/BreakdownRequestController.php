@@ -846,11 +846,11 @@ class BreakdownRequestController extends Controller
                     [
                         'New',
                         'Reopened',
+                        'Pending Reassignment',
                     ],
                     true
                 )
             ) {
-
                 return;
             }
 

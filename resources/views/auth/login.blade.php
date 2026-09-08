@@ -21,7 +21,7 @@
         }
         .login-card { border: none; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
         .login-logo {
-                width: 200px;
+                width: 280px;
                 max-width: 100%;
                 height: auto;
                 object-fit: contain;
@@ -42,7 +42,7 @@
     </style>
 </head>
 <body class="d-flex align-items-center justify-content-center">
-<div class="card login-card p-4" style="width: 380px;">
+<div class="card login-card p-4" style="width: 350px;">
 <div class="text-center mb-4">
     <img src="{{ asset('images/logo.png') }}"
          alt="Western Provincial Council"
@@ -51,7 +51,7 @@
     <!-- <h3 class="login-department mt-3">IT Department</h3> -->
 
     <p class="login-system-name">
-        Breakdown Management System
+        Complain Management System
     </p>
 </div>
 

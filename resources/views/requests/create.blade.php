@@ -268,21 +268,28 @@
                     <span class="text-danger">*</span>
                 </label>
 
-                    <input
-                        type="text"
-                        name="machine_owner_contact"
-                        id="machineOwnerContact"
-                        class="form-control"
-                        value="{{ old('machine_owner_contact') }}"
-                        placeholder="e.g. 0712345678"
-                        inputmode="numeric"
-                        minlength="10"
-                        maxlength="10"
-                        pattern="[0-9]{10}"
-                        title="Contact number must contain exactly 10 digits"
-                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
-                        required
-                    >
+                <input
+                    type="text"
+                    name="machine_owner_contact"
+                    id="machineOwnerContact"
+                    class="form-control"
+                    value="{{ old('machine_owner_contact', '0') }}"
+                    inputmode="numeric"
+                    minlength="10"
+                    maxlength="10"
+                    pattern="0[0-9]{9}"
+                    title="Contact number must start with 0 and contain exactly 10 digits"
+                    oninput="
+                        let digits = this.value.replace(/[^0-9]/g, '');
+
+                        if (!digits.startsWith('0')) {
+                            digits = '0' + digits;
+                        }
+
+                        this.value = digits.slice(0, 10);
+                    "
+                    required
+                >
 
             </div>
 
