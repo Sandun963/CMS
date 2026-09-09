@@ -15,11 +15,14 @@ use Illuminate\Support\Facades\Auth;
 class ReportController extends Controller
 {
     /**
-     * Display report summary page.
+     * Display report summary page + filtered preview.
      */
     public function index(Request $request)
     {
-        abort_unless(Auth::user()->isAdministrator(), 403);
+        abort_unless(
+            Auth::user()->isAdministrator(),
+            403
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -76,11 +79,14 @@ class ReportController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Floors - New Location Table
+        | Floors
         |--------------------------------------------------------------------------
         */
 
-        $floors = Floor::where('is_active', true)
+        $floors = Floor::where(
+                'is_active',
+                true
+            )
             ->orderBy('id')
             ->get();
 
@@ -103,6 +109,59 @@ class ReportController extends Controller
             ->orderBy('name')
             ->get();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Check Whether Filters Are Applied
+        |--------------------------------------------------------------------------
+        */
+
+        $hasFilters =
+            $request->filled('request_number')
+            || $request->filled('status')
+            || $request->filled('floor_id')
+            || $request->filled('division_id')
+            || $request->filled('area_id')
+            || $request->filled('technician_id')
+            || $request->filled('date_from')
+            || $request->filled('date_to');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Filtered Request Preview
+        |--------------------------------------------------------------------------
+        */
+
+        $filteredRequests = collect();
+
+        if ($hasFilters) {
+
+            $filteredQuery = BreakdownRequest::with([
+                'department',
+                'floor',
+                'division',
+                'areaLocation',
+                'category',
+                'requestedBy',
+                'assignedTo',
+            ]);
+
+            $this->applyFilters(
+                $filteredQuery,
+                $request
+            );
+
+            $filteredRequests = $filteredQuery
+                ->latest()
+                ->paginate(10)
+                ->withQueryString();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Return View
+        |--------------------------------------------------------------------------
+        */
+
         return view(
             'reports.index',
             compact(
@@ -111,18 +170,28 @@ class ReportController extends Controller
                 'byCategory',
                 'byTechnician',
                 'floors',
-                'technicians'
+                'technicians',
+                'filteredRequests',
+                'hasFilters'
             )
         );
     }
-
 
     /**
      * Export detailed breakdown request report as PDF.
      */
     public function exportPdf(Request $request)
     {
-        abort_unless(Auth::user()->isAdministrator(), 403);
+        abort_unless(
+            Auth::user()->isAdministrator(),
+            403
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Build Query
+        |--------------------------------------------------------------------------
+        */
 
         $query = BreakdownRequest::with([
             'department',
@@ -136,201 +205,14 @@ class ReportController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Request Number
+        | Apply Same Filters Used By Preview
         |--------------------------------------------------------------------------
         */
 
-        if ($request->filled('request_number')) {
-            $query->where(
-                'request_number',
-                'like',
-                '%' . $request->request_number . '%'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Status
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('status')) {
-            $query->where(
-                'status',
-                $request->status
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Floor
-        |--------------------------------------------------------------------------
-        |
-        | New requests use floor_id.
-        | Legacy requests can still match using department.floor.
-        |
-        */
-
-        if ($request->filled('floor_id')) {
-
-            $selectedFloorForFilter = Floor::find(
-                $request->floor_id
-            );
-
-            $query->where(
-                function ($q) use (
-                    $request,
-                    $selectedFloorForFilter
-                ) {
-                    $q->where(
-                        'floor_id',
-                        $request->floor_id
-                    );
-
-                    if ($selectedFloorForFilter) {
-                        $q->orWhereHas(
-                            'department',
-                            function ($departmentQuery) use (
-                                $selectedFloorForFilter
-                            ) {
-                                $departmentQuery->where(
-                                    'floor',
-                                    $selectedFloorForFilter->name
-                                );
-                            }
-                        );
-                    }
-                }
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Division
-        |--------------------------------------------------------------------------
-        |
-        | New requests use division_id.
-        | Legacy requests can still match the old department name.
-        |
-        */
-
-        if ($request->filled('division_id')) {
-
-            $selectedDivisionForFilter = Division::with('floor')
-                ->find($request->division_id);
-
-            $query->where(
-                function ($q) use (
-                    $request,
-                    $selectedDivisionForFilter
-                ) {
-                    $q->where(
-                        'division_id',
-                        $request->division_id
-                    );
-
-                    if ($selectedDivisionForFilter) {
-                        $q->orWhereHas(
-                            'department',
-                            function ($departmentQuery) use (
-                                $selectedDivisionForFilter
-                            ) {
-                                $departmentQuery->where(
-                                    'name',
-                                    $selectedDivisionForFilter->name
-                                );
-
-                                if ($selectedDivisionForFilter->floor) {
-                                    $departmentQuery->where(
-                                        'floor',
-                                        $selectedDivisionForFilter
-                                            ->floor
-                                            ->name
-                                    );
-                                }
-                            }
-                        );
-                    }
-                }
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Area
-        |--------------------------------------------------------------------------
-        |
-        | New requests use area_id.
-        | Legacy requests can still match the old area text.
-        |
-        */
-
-        if ($request->filled('area_id')) {
-
-            $selectedAreaForFilter = Area::find(
-                $request->area_id
-            );
-
-            $query->where(
-                function ($q) use (
-                    $request,
-                    $selectedAreaForFilter
-                ) {
-                    $q->where(
-                        'area_id',
-                        $request->area_id
-                    );
-
-                    if ($selectedAreaForFilter) {
-                        $q->orWhere(
-                            'area',
-                            $selectedAreaForFilter->name
-                        );
-                    }
-                }
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Technical Officer
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('technician_id')) {
-            $query->where(
-                'assigned_to',
-                $request->technician_id
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Date From
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('date_from')) {
-            $query->whereDate(
-                'created_at',
-                '>=',
-                $request->date_from
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Date To
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('date_to')) {
-            $query->whereDate(
-                'created_at',
-                '<=',
-                $request->date_to
-            );
-        }
+        $this->applyFilters(
+            $query,
+            $request
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -344,7 +226,7 @@ class ReportController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Filters
+        | Filter Values
         |--------------------------------------------------------------------------
         */
 
@@ -376,7 +258,7 @@ class ReportController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Selected Filter Names for PDF
+        | Selected Filter Names For PDF
         |--------------------------------------------------------------------------
         */
 
@@ -386,24 +268,28 @@ class ReportController extends Controller
         $selectedTechnician = null;
 
         if ($request->filled('floor_id')) {
+
             $selectedFloor = Floor::find(
                 $request->floor_id
             );
         }
 
         if ($request->filled('division_id')) {
+
             $selectedDivision = Division::find(
                 $request->division_id
             );
         }
 
         if ($request->filled('area_id')) {
+
             $selectedArea = Area::find(
                 $request->area_id
             );
         }
 
         if ($request->filled('technician_id')) {
+
             $selectedTechnician = User::find(
                 $request->technician_id
             );
@@ -436,5 +322,232 @@ class ReportController extends Controller
             now()->format('Y-m-d_H-i-s') .
             '.pdf'
         );
+    }
+
+    /**
+     * Apply report filters to BreakdownRequest query.
+     */
+    private function applyFilters(
+        $query,
+        Request $request
+    ) {
+        /*
+        |--------------------------------------------------------------------------
+        | Request Number
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('request_number')) {
+
+            $query->where(
+                'request_number',
+                'like',
+                '%' . $request->request_number . '%'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Status
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('status')) {
+
+            $query->where(
+                'status',
+                $request->status
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Floor
+        |--------------------------------------------------------------------------
+        |
+        | New requests use floor_id.
+        | Legacy requests may still use department.floor.
+        |
+        */
+
+        if ($request->filled('floor_id')) {
+
+            $selectedFloor = Floor::find(
+                $request->floor_id
+            );
+
+            $query->where(
+                function ($q) use (
+                    $request,
+                    $selectedFloor
+                ) {
+
+                    $q->where(
+                        'floor_id',
+                        $request->floor_id
+                    );
+
+                    if ($selectedFloor) {
+
+                        $q->orWhereHas(
+                            'department',
+                            function ($departmentQuery) use (
+                                $selectedFloor
+                            ) {
+
+                                $departmentQuery->where(
+                                    'floor',
+                                    $selectedFloor->name
+                                );
+                            }
+                        );
+                    }
+                }
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Division
+        |--------------------------------------------------------------------------
+        |
+        | New requests use division_id.
+        | Legacy requests may still match department name.
+        |
+        */
+
+        if ($request->filled('division_id')) {
+
+            $selectedDivision =
+                Division::with('floor')
+                    ->find(
+                        $request->division_id
+                    );
+
+            $query->where(
+                function ($q) use (
+                    $request,
+                    $selectedDivision
+                ) {
+
+                    $q->where(
+                        'division_id',
+                        $request->division_id
+                    );
+
+                    if ($selectedDivision) {
+
+                        $q->orWhereHas(
+                            'department',
+                            function ($departmentQuery) use (
+                                $selectedDivision
+                            ) {
+
+                                $departmentQuery->where(
+                                    'name',
+                                    $selectedDivision->name
+                                );
+
+                                if (
+                                    $selectedDivision->floor
+                                ) {
+
+                                    $departmentQuery->where(
+                                        'floor',
+                                        $selectedDivision
+                                            ->floor
+                                            ->name
+                                    );
+                                }
+                            }
+                        );
+                    }
+                }
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Area
+        |--------------------------------------------------------------------------
+        |
+        | New requests use area_id.
+        | Legacy requests may still use area text.
+        |
+        */
+
+        if ($request->filled('area_id')) {
+
+            $selectedArea = Area::find(
+                $request->area_id
+            );
+
+            $query->where(
+                function ($q) use (
+                    $request,
+                    $selectedArea
+                ) {
+
+                    $q->where(
+                        'area_id',
+                        $request->area_id
+                    );
+
+                    if ($selectedArea) {
+
+                        $q->orWhere(
+                            'area',
+                            $selectedArea->name
+                        );
+                    }
+                }
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Technical Officer
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('technician_id')) {
+
+            $query->where(
+                'assigned_to',
+                $request->technician_id
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | From Date
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('date_from')) {
+
+            $query->whereDate(
+                'created_at',
+                '>=',
+                $request->date_from
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | To Date
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('date_to')) {
+
+            $query->whereDate(
+                'created_at',
+                '<=',
+                $request->date_to
+            );
+        }
+
+        return $query;
     }
 }

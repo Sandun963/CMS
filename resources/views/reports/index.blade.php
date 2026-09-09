@@ -10,11 +10,15 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
 
     <div>
-        <h4 class="mb-1">Reports</h4>
+
+        <h4 class="mb-1">
+            Reports
+        </h4>
 
         <div class="text-muted small">
-            View breakdown statistics and generate reports.
+            Filter breakdown requests, preview results, and generate PDF reports.
         </div>
+
     </div>
 
 
@@ -34,7 +38,7 @@
 
 
 {{-- =========================================================
-     PDF REPORT FILTERS
+     REPORT FILTERS
 ========================================================= --}}
 <div class="card stat-card mb-4">
 
@@ -51,7 +55,7 @@
                 </strong>
 
                 <div class="text-muted small">
-                    Select one or more filters to generate a customized report.
+                    Select one or more filters to preview and generate a customized report.
                 </div>
 
             </div>
@@ -65,14 +69,16 @@
 
         <form
             method="GET"
-            action="{{ route('reports.export.pdf') }}"
+            action="{{ route('reports.index') }}"
             id="pdfReportFilterForm"
         >
 
             <div class="row g-3">
 
 
-                {{-- Request Number --}}
+                {{-- =====================================================
+                     REQUEST NUMBER
+                ====================================================== --}}
                 <div class="col-md-4">
 
                     <label
@@ -87,13 +93,16 @@
                         name="request_number"
                         id="requestNumber"
                         class="form-control"
+                        value="{{ request('request_number') }}"
                         placeholder="e.g. BRK-2026-0001"
                     >
 
                 </div>
 
 
-                {{-- Status --}}
+                {{-- =====================================================
+                     STATUS
+                ====================================================== --}}
                 <div class="col-md-4">
 
                     <label
@@ -117,12 +126,16 @@
                             'New',
                             'Assigned',
                             'In Progress',
+                            'Pending Reassignment',
                             'Resolved',
                             'Closed',
                             'Reopened'
                         ] as $status)
 
-                            <option value="{{ $status }}">
+                            <option
+                                value="{{ $status }}"
+                                @selected(request('status') === $status)
+                            >
                                 {{ $status }}
                             </option>
 
@@ -133,7 +146,9 @@
                 </div>
 
 
-                {{-- Floor --}}
+                {{-- =====================================================
+                     FLOOR
+                ====================================================== --}}
                 <div class="col-md-4">
 
                     <label
@@ -155,7 +170,14 @@
 
                         @foreach($floors as $floor)
 
-                            <option value="{{ $floor->id }}">
+                            <option
+                                value="{{ $floor->id }}"
+                                @selected(
+                                    (string) request('floor_id')
+                                    ===
+                                    (string) $floor->id
+                                )
+                            >
                                 {{ $floor->name }}
                             </option>
 
@@ -166,7 +188,9 @@
                 </div>
 
 
-                {{-- Division --}}
+                {{-- =====================================================
+                     DIVISION
+                ====================================================== --}}
                 <div class="col-md-4">
 
                     <label
@@ -196,7 +220,9 @@
                 </div>
 
 
-                {{-- Area --}}
+                {{-- =====================================================
+                     AREA
+                ====================================================== --}}
                 <div class="col-md-4">
 
                     <label
@@ -222,7 +248,9 @@
                 </div>
 
 
-                {{-- Technical Officer --}}
+                {{-- =====================================================
+                     TECHNICAL OFFICER
+                ====================================================== --}}
                 <div class="col-md-4">
 
                     <label
@@ -244,7 +272,14 @@
 
                         @foreach($technicians as $technician)
 
-                            <option value="{{ $technician->id }}">
+                            <option
+                                value="{{ $technician->id }}"
+                                @selected(
+                                    (string) request('technician_id')
+                                    ===
+                                    (string) $technician->id
+                                )
+                            >
                                 {{ $technician->name }}
                             </option>
 
@@ -255,7 +290,9 @@
                 </div>
 
 
-                {{-- From Date --}}
+                {{-- =====================================================
+                     FROM DATE
+                ====================================================== --}}
                 <div class="col-md-4">
 
                     <label
@@ -270,12 +307,15 @@
                         name="date_from"
                         id="dateFrom"
                         class="form-control"
+                        value="{{ request('date_from') }}"
                     >
 
                 </div>
 
 
-                {{-- To Date --}}
+                {{-- =====================================================
+                     TO DATE
+                ====================================================== --}}
                 <div class="col-md-4">
 
                     <label
@@ -290,6 +330,7 @@
                         name="date_to"
                         id="dateTo"
                         class="form-control"
+                        value="{{ request('date_to') }}"
                     >
 
                 </div>
@@ -297,26 +338,40 @@
             </div>
 
 
-            {{-- Filter Action Buttons --}}
+            {{-- =========================================================
+                 ACTION BUTTONS
+            ========================================================= --}}
             <div class="d-flex flex-wrap gap-2 mt-4">
 
+                {{-- View Results --}}
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    <i class="bi bi-search me-1"></i>
+                    View Filtered Results
+                </button>
+
+
+                {{-- Download Filtered PDF --}}
                 <button
                     type="submit"
                     class="btn btn-danger"
+                    formaction="{{ route('reports.export.pdf') }}"
                 >
                     <i class="bi bi-file-earmark-pdf me-1"></i>
                     Download Filtered PDF
                 </button>
 
 
-                <button
-                    type="reset"
+                {{-- Clear Filters --}}
+                <a
+                    href="{{ route('reports.index') }}"
                     class="btn btn-outline-secondary"
-                    id="clearReportFilters"
                 >
                     <i class="bi bi-x-circle me-1"></i>
                     Clear Filters
-                </button>
+                </a>
 
             </div>
 
@@ -327,233 +382,240 @@
 </div>
 
 
+
 {{-- =========================================================
-     REPORT STATISTICS
+     FILTERED REQUEST PREVIEW
 ========================================================= --}}
-<div class="row g-3">
 
+@if($hasFilters)
 
-    {{-- Requests by Division --}}
-    <div class="col-md-6">
+<div class="card stat-card mb-4">
 
-        <div class="card stat-card p-3 h-100">
+    <div class="card-header bg-white">
 
-            <strong class="mb-2 d-block">
-                Requests by Division
-            </strong>
+        <div class="d-flex justify-content-between align-items-center">
 
-            <div class="table-responsive">
+            <div>
 
-                <table class="table table-sm mb-0">
+                <strong>
+                    Filtered Breakdown Requests
+                </strong>
 
-                    <tbody>
-
-                        @forelse($byDivision as $row)
-
-                            <tr>
-
-                                <td>
-                                    {{ $row->division?->name ?? 'Unknown' }}
-                                </td>
-
-                                <td class="text-end fw-semibold">
-                                    {{ $row->total }}
-                                </td>
-
-                            </tr>
-
-                        @empty
-
-                            <tr>
-                                <td class="text-muted">
-                                    No data yet.
-                                </td>
-                            </tr>
-
-                        @endforelse
-
-                    </tbody>
-
-                </table>
+                <div class="text-muted small">
+                    Review these requests before downloading the PDF.
+                </div>
 
             </div>
+
+
+            <span class="badge bg-primary">
+
+                {{ $filteredRequests->total() }}
+                {{ $filteredRequests->total() === 1 ? 'Result' : 'Results' }}
+
+            </span>
 
         </div>
 
     </div>
 
 
-    {{-- Requests by Status --}}
-    <div class="col-md-6">
+    <div class="card-body p-0">
 
-        <div class="card stat-card p-3 h-100">
+        <div class="table-responsive">
 
-            <strong class="mb-2 d-block">
-                Requests by Status
-            </strong>
+            <table class="table table-hover mb-0 align-middle">
 
-            <div class="table-responsive">
+                <thead class="table-light">
 
-                <table class="table table-sm mb-0">
+                    <tr>
 
-                    <tbody>
+                        <th>
+                            Request No.
+                        </th>
 
-                        @forelse($byStatus as $row)
+                        <th>
+                            Problem
+                        </th>
 
-                            <tr>
+                        <th>
+                            Status
+                        </th>
 
-                                <td>
-                                    {{ $row->status }}
-                                </td>
+                        <th>
+                            Technical Officer
+                        </th>
 
-                                <td class="text-end fw-semibold">
-                                    {{ $row->total }}
-                                </td>
+                        <th>
+                            Date
+                        </th>
 
-                            </tr>
+                        <th>
+                            Action
+                        </th>
 
-                        @empty
+                    </tr>
 
-                            <tr>
-                                <td class="text-muted">
-                                    No data yet.
-                                </td>
-                            </tr>
-
-                        @endforelse
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-    </div>
+                </thead>
 
 
-    {{-- Requests by Category --}}
-    <div class="col-md-6">
+                <tbody>
 
-        <div class="card stat-card p-3 h-100">
+                    @forelse($filteredRequests as $breakdownRequest)
 
-            <strong class="mb-2 d-block">
-                Requests by Category
-            </strong>
-
-            <div class="table-responsive">
-
-                <table class="table table-sm mb-0">
-
-                    <tbody>
-
-                        @forelse($byCategory as $row)
-
-                            <tr>
-
-                                <td>
-                                    {{ $row->category?->name ?? 'Uncategorized' }}
-                                </td>
-
-                                <td class="text-end fw-semibold">
-                                    {{ $row->total }}
-                                </td>
-
-                            </tr>
-
-                        @empty
-
-                            <tr>
-                                <td class="text-muted">
-                                    No data yet.
-                                </td>
-                            </tr>
-
-                        @endforelse
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-    </div>
+                        <tr>
 
 
-    {{-- Requests by Technical Officer --}}
-    <div class="col-md-6">
+                            {{-- Request Number --}}
+                            <td class="fw-semibold">
 
-        <div class="card stat-card p-3 h-100">
+                                {{ $breakdownRequest->request_number }}
 
-            <strong class="mb-2 d-block">
-                Requests by Technical Officer
-            </strong>
+                            </td>
 
-            <div class="table-responsive">
 
-                <table class="table table-sm mb-0">
+                            {{-- Problem --}}
+                            <td>
 
-                    <tbody>
+                                {{ $breakdownRequest->title }}
 
-                        @forelse($byTechnician as $row)
+                            </td>
 
-                            <tr>
 
-                                <td>
-                                    {{ $row->assignedTo?->name ?? 'Unassigned' }}
-                                </td>
+                            {{-- Status --}}
+                            <td>
 
-                                <td class="text-end fw-semibold">
-                                    {{ $row->total }}
-                                </td>
+                                <span
+                                    class="badge {{ $breakdownRequest->statusBadgeClass() }}"
+                                >
+                                    {{ $breakdownRequest->status }}
+                                </span>
 
-                            </tr>
+                            </td>
 
-                        @empty
 
-                            <tr>
-                                <td class="text-muted">
-                                    No data yet.
-                                </td>
-                            </tr>
+                            {{-- Technical Officer --}}
+                            <td>
 
-                        @endforelse
+                                {{
+                                    $breakdownRequest->assignedTo?->name
+                                    ?? 'Unassigned'
+                                }}
 
-                    </tbody>
+                            </td>
 
-                </table>
 
-            </div>
+                            {{-- Date --}}
+                            <td>
+
+                                {{
+                                    $breakdownRequest
+                                        ->created_at
+                                        ->format('d/m/Y')
+                                }}
+
+                            </td>
+
+
+                            {{-- View --}}
+                            <td>
+
+                                <a
+                                    href="{{ route(
+                                        'requests.show',
+                                        $breakdownRequest
+                                    ) }}"
+                                    class="btn btn-sm btn-outline-primary"
+                                >
+                                    <i class="bi bi-eye me-1"></i>
+                                    View
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+
+                    @empty
+
+                        <tr>
+
+                            <td
+                                colspan="6"
+                                class="text-center text-muted py-5"
+                            >
+
+                                <i class="bi bi-search fs-3 d-block mb-2"></i>
+
+                                No breakdown requests match the selected filters.
+
+                            </td>
+
+                        </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
 
         </div>
 
     </div>
+
+
+    {{-- =====================================================
+         PAGINATION
+    ====================================================== --}}
+
+    @if($filteredRequests->hasPages())
+
+        <div class="card-footer bg-white">
+
+            {{ $filteredRequests->links() }}
+
+        </div>
+
+    @endif
 
 </div>
+
+@endif
+
 
 
 {{-- =========================================================
      FLOOR -> DIVISION -> AREA DEPENDENT DROPDOWNS
 ========================================================= --}}
+
 <script>
 
-function toTitleCase(text) {
-    if (!text) return '';
+function toTitleCase(text)
+{
+    if (!text) {
+        return '';
+    }
 
     return text
         .toLowerCase()
-        .replace(/\b\w/g, function (char) {
-            return char.toUpperCase();
-        });
+        .replace(
+            /\b\w/g,
+            function (char) {
+                return char.toUpperCase();
+            }
+        );
 }
 
 
 document.addEventListener(
     'DOMContentLoaded',
     function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Elements
+        |--------------------------------------------------------------------------
+        */
 
         const floorSelect =
             document.getElementById('reportFloor');
@@ -564,8 +626,25 @@ document.addEventListener(
         const areaSelect =
             document.getElementById('reportArea');
 
-        const clearButton =
-            document.getElementById('clearReportFilters');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Existing Selected Values
+        |--------------------------------------------------------------------------
+        |
+        | These values allow Division and Area to remain selected after
+        | clicking "View Filtered Results".
+        |
+        */
+
+        const selectedFloorId =
+            @json(request('floor_id'));
+
+        const selectedDivisionId =
+            @json(request('division_id'));
+
+        const selectedAreaId =
+            @json(request('area_id'));
 
 
         /*
@@ -574,13 +653,25 @@ document.addEventListener(
         |--------------------------------------------------------------------------
         */
 
-        async function loadDivisions(floorId) {
+        async function loadDivisions(
+            floorId,
+            divisionToSelect = null,
+            areaToSelect = null
+        ) {
+
+            /*
+            | Reset Area
+            */
 
             areaSelect.disabled = true;
 
             areaSelect.innerHTML =
                 '<option value="">Select Division First</option>';
 
+
+            /*
+            | No Floor
+            */
 
             if (!floorId) {
 
@@ -590,9 +681,12 @@ document.addEventListener(
                     '<option value="">Select Floor First</option>';
 
                 return;
-
             }
 
+
+            /*
+            | Loading
+            */
 
             divisionSelect.disabled = true;
 
@@ -613,9 +707,11 @@ document.addEventListener(
 
 
                 if (!response.ok) {
+
                     throw new Error(
                         'Unable to load divisions.'
                     );
+
                 }
 
 
@@ -623,29 +719,71 @@ document.addEventListener(
                     await response.json();
 
 
+                /*
+                | Default option
+                */
+
                 divisionSelect.innerHTML =
                     '<option value="">All Divisions</option>';
 
 
-                divisions.forEach(function (division) {
+                /*
+                | Add Divisions
+                */
 
-                    const option =
-                        document.createElement('option');
+                divisions.forEach(
+                    function (division) {
 
-                    option.value =
-                        division.id;
+                        const option =
+                            document.createElement('option');
 
-                    option.textContent =
-                        toTitleCase(division.name);
+                        option.value =
+                            division.id;
 
-                    divisionSelect.appendChild(
-                        option
-                    );
+                        option.textContent =
+                            toTitleCase(
+                                division.name
+                            );
 
-                });
+
+                        /*
+                        | Restore selected Division
+                        */
+
+                        if (
+                            divisionToSelect &&
+                            String(division.id) ===
+                            String(divisionToSelect)
+                        ) {
+
+                            option.selected = true;
+
+                        }
+
+
+                        divisionSelect.appendChild(
+                            option
+                        );
+
+                    }
+                );
 
 
                 divisionSelect.disabled = false;
+
+
+                /*
+                | Restore Area after Division
+                */
+
+                if (divisionToSelect) {
+
+                    await loadAreas(
+                        divisionToSelect,
+                        areaToSelect
+                    );
+
+                }
 
 
             } catch (error) {
@@ -655,8 +793,10 @@ document.addEventListener(
                     error
                 );
 
+
                 divisionSelect.innerHTML =
                     '<option value="">Unable to load divisions</option>';
+
 
                 divisionSelect.disabled = true;
 
@@ -665,13 +805,21 @@ document.addEventListener(
         }
 
 
+
         /*
         |--------------------------------------------------------------------------
         | Load Areas
         |--------------------------------------------------------------------------
         */
 
-        async function loadAreas(divisionId) {
+        async function loadAreas(
+            divisionId,
+            areaToSelect = null
+        ) {
+
+            /*
+            | No Division
+            */
 
             if (!divisionId) {
 
@@ -681,9 +829,12 @@ document.addEventListener(
                     '<option value="">Select Division First</option>';
 
                 return;
-
             }
 
+
+            /*
+            | Loading
+            */
 
             areaSelect.disabled = true;
 
@@ -704,9 +855,11 @@ document.addEventListener(
 
 
                 if (!response.ok) {
+
                     throw new Error(
                         'Unable to load areas.'
                     );
+
                 }
 
 
@@ -714,26 +867,56 @@ document.addEventListener(
                     await response.json();
 
 
+                /*
+                | Default option
+                */
+
                 areaSelect.innerHTML =
                     '<option value="">All Areas</option>';
 
 
-                areas.forEach(function (area) {
+                /*
+                | Add Areas
+                */
 
-                    const option =
-                        document.createElement('option');
+                areas.forEach(
+                    function (area) {
 
-                    option.value =
-                        area.id;
+                        const option =
+                            document.createElement('option');
 
-                    option.textContent =
-                        toTitleCase(area.name);
 
-                    areaSelect.appendChild(
-                        option
-                    );
+                        option.value =
+                            area.id;
 
-                });
+
+                        option.textContent =
+                            toTitleCase(
+                                area.name
+                            );
+
+
+                        /*
+                        | Restore selected Area
+                        */
+
+                        if (
+                            areaToSelect &&
+                            String(area.id) ===
+                            String(areaToSelect)
+                        ) {
+
+                            option.selected = true;
+
+                        }
+
+
+                        areaSelect.appendChild(
+                            option
+                        );
+
+                    }
+                );
 
 
                 areaSelect.disabled = false;
@@ -746,14 +929,17 @@ document.addEventListener(
                     error
                 );
 
+
                 areaSelect.innerHTML =
                     '<option value="">Unable to load areas</option>';
+
 
                 areaSelect.disabled = true;
 
             }
 
         }
+
 
 
         /*
@@ -774,6 +960,7 @@ document.addEventListener(
         );
 
 
+
         /*
         |--------------------------------------------------------------------------
         | Division Changed
@@ -792,35 +979,33 @@ document.addEventListener(
         );
 
 
+
         /*
         |--------------------------------------------------------------------------
-        | Clear Filters
+        | Restore Existing Filters
         |--------------------------------------------------------------------------
+        |
+        | Example:
+        |
+        | Floor = 2
+        | Division = Education Ministry
+        | Area = Office Area
+        |
+        | User clicks View Filtered Results.
+        |
+        | After the page reloads all three selections remain visible.
+        |
         */
 
-        clearButton.addEventListener(
-            'click',
-            function () {
+        if (selectedFloorId) {
 
-                setTimeout(
-                    function () {
+            loadDivisions(
+                selectedFloorId,
+                selectedDivisionId,
+                selectedAreaId
+            );
 
-                        divisionSelect.disabled = true;
-
-                        divisionSelect.innerHTML =
-                            '<option value="">Select Floor First</option>';
-
-                        areaSelect.disabled = true;
-
-                        areaSelect.innerHTML =
-                            '<option value="">Select Division First</option>';
-
-                    },
-                    0
-                );
-
-            }
-        );
+        }
 
     }
 );

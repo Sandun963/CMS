@@ -207,16 +207,24 @@
                     </div>
 
 
-                    {{-- Contact Number --}}
-                    <div class="col-md-4">
+                    <div class="col-md-4 mb-3">
 
-                        <strong class="d-block mb-1">
-                            Contact Number:
-                        </strong>
+                        <strong>Troubleshooter Name:</strong>
 
-                        <span>
-                            {{ $breakdownRequest->machine_owner_contact ?? '-' }}
-                        </span>
+                        <div>
+                            {{ $breakdownRequest->troubleshooter_name ?? '-' }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4 mb-3">
+
+                        <strong>Troubleshooter Contact:</strong>
+
+                        <div>
+                            {{ $breakdownRequest->troubleshooter_contact ?? '-' }}
+                        </div>
 
                     </div>
 

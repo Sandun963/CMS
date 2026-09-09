@@ -229,51 +229,80 @@
 
 
         {{-- Machine Owner --}}
+        <div class="mb-3">
+
+            <label
+                for="machineOwnerName"
+                class="form-label fw-semibold"
+            >
+                Machine Owner Name
+                <span class="text-danger">*</span>
+            </label>
+
+            <input
+                type="text"
+                name="machine_owner_name"
+                id="machineOwnerName"
+                class="form-control"
+                value="{{ old('machine_owner_name') }}"
+                placeholder="Enter machine owner's name"
+                oninput="this.value = this.value.toUpperCase()"
+                required
+            >
+
+        </div>
+
+
+        {{-- Troubleshooter Details --}}
         <div class="row">
 
-
-            {{-- Machine Owner Name --}}
+            {{-- Troubleshooter Name --}}
             <div class="col-md-6 mb-3">
 
                 <label
-                    for="machineOwnerName"
+                    for="troubleshooterName"
                     class="form-label fw-semibold"
                 >
-                    Machine Owner Name
-                    <span class="text-danger">*</span>
+                    Troubleshooter Name
+
+                    <span class="text-muted fw-normal">
+                        (optional)
+                    </span>
                 </label>
 
                 <input
                     type="text"
-                    name="machine_owner_name"
-                    id="machineOwnerName"
+                    name="troubleshooter_name"
+                    id="troubleshooterName"
                     class="form-control"
-                    value="{{ old('machine_owner_name') }}"
-                    placeholder="Enter machine owner's name"
+                    value="{{ old('troubleshooter_name') }}"
+                    placeholder="Enter troubleshooter's name"
                     oninput="this.value = this.value.toUpperCase()"
-                    required
                 >
 
             </div>
 
 
-            {{-- Contact Number --}}
+            {{-- Troubleshooter Contact --}}
             <div class="col-md-6 mb-3">
 
                 <label
-                    for="machineOwnerContact"
+                    for="troubleshooterContact"
                     class="form-label fw-semibold"
                 >
-                    Contact Number
-                    <span class="text-danger">*</span>
+                    Troubleshooter Contact Number
+
+                    <span class="text-muted fw-normal">
+                        (optional)
+                    </span>
                 </label>
 
                 <input
                     type="text"
-                    name="machine_owner_contact"
-                    id="machineOwnerContact"
+                    name="troubleshooter_contact"
+                    id="troubleshooterContact"
                     class="form-control"
-                    value="{{ old('machine_owner_contact', '0') }}"
+                    value="{{ old('troubleshooter_contact', '0') }}"
                     inputmode="numeric"
                     minlength="10"
                     maxlength="10"
@@ -288,56 +317,54 @@
 
                         this.value = digits.slice(0, 10);
                     "
-                    required
                 >
 
             </div>
 
-
         </div>
 
 
-        {{-- Attachments --}}
-        <div class="mb-3">
+                {{-- Attachments --}}
+                <div class="mb-3">
 
-            <label class="form-label fw-semibold">
-                Attach Images (optional)
-            </label>
+                    <label class="form-label fw-semibold">
+                        Attach Images (optional)
+                    </label>
 
-            <input
-                type="file"
-                name="attachments[]"
-                class="form-control"
-                multiple
-                accept=".jpg,.jpeg,.png,.pdf"
-            >
+                    <input
+                        type="file"
+                        name="attachments[]"
+                        class="form-control"
+                        multiple
+                        accept=".jpg,.jpeg,.png,.pdf"
+                    >
 
-            <div class="form-text">
-                JPG, PNG or PDF, max 5MB each.
-            </div>
+                    <div class="form-text">
+                        JPG, PNG or PDF, max 5MB each.
+                    </div>
+
+                </div>
+
+
+                {{-- Buttons --}}
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    <i class="bi bi-send me-1"></i>
+                    Submit Request
+                </button>
+
+                <a
+                    href="{{ route('dashboard') }}"
+                    class="btn btn-outline-secondary"
+                >
+                    Cancel
+                </a>
+
+            </form>
 
         </div>
-
-
-        {{-- Buttons --}}
-        <button
-            type="submit"
-            class="btn btn-primary"
-        >
-            <i class="bi bi-send me-1"></i>
-            Submit Request
-        </button>
-
-        <a
-            href="{{ route('dashboard') }}"
-            class="btn btn-outline-secondary"
-        >
-            Cancel
-        </a>
-
-    </form>
-
-</div>
 
 
 

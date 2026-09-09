@@ -389,9 +389,15 @@ class BreakdownRequestController extends Controller
             ],
 
 
-            'machine_owner_contact' => [
-                'required',
-                'regex:/^[0-9]{10}$/',
+            'troubleshooter_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'troubleshooter_contact' => [
+                'nullable',
+                'regex:/^0[0-9]{9}$/',
             ],
 
 
@@ -587,9 +593,13 @@ class BreakdownRequestController extends Controller
             'machine_owner_name' =>
                 strtoupper($data['machine_owner_name']),
 
+            'troubleshooter_name' =>
+                !empty($data['troubleshooter_name'])
+                    ? strtoupper($data['troubleshooter_name'])
+                    : null,
 
-            'machine_owner_contact' =>
-                $data['machine_owner_contact'],
+            'troubleshooter_contact' =>
+                $data['troubleshooter_contact'] ?? null,
 
         ]);
 
