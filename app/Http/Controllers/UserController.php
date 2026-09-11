@@ -47,12 +47,28 @@ class UserController extends Controller
             'username' => ['required', 'string', 'unique:users,username'],
             'password' => ['required', 'string', 'min:6'],
             'role_id' => ['required', 'exists:roles,id'],
+            'admin_scope' => ['nullable','string','max:100'],
             'floor_id' => ['nullable', 'exists:floors,id'],
             'division_id' => ['nullable', 'exists:divisions,id'],
             'phone' => ['nullable', 'string'],
             'specialty' => ['nullable', 'string'],
         ]);
 
+
+        $administratorRole = Role::where(
+            'code',
+            Role::ADMINISTRATOR
+        )->first();
+
+        if (
+            ! $administratorRole
+            ||
+            (int) $data['role_id'] !== (int) $administratorRole->id
+        ) {
+            $data['admin_scope'] = null;
+        }
+
+        
         if (! empty($data['division_id'])) {
 
             $validDivision = Division::where('id', $data['division_id'])
@@ -110,6 +126,7 @@ class UserController extends Controller
             'email' => ['required', 'email', 'unique:users,email,' . $user->id],
             'username' => ['required', 'string', 'unique:users,username,' . $user->id],
             'role_id' => ['required', 'exists:roles,id'],
+            'admin_scope' => ['nullable','string','max:100'],
             'floor_id' => ['nullable', 'exists:floors,id'],
             'division_id' => ['nullable', 'exists:divisions,id'],
             'phone' => ['nullable', 'string'],
@@ -117,6 +134,20 @@ class UserController extends Controller
             'is_active' => ['nullable', 'boolean'],
             'password' => ['nullable', 'string', 'min:6'],
         ]);
+
+        $administratorRole = Role::where(
+            'code',
+            Role::ADMINISTRATOR
+        )->first();
+
+        if (
+            ! $administratorRole
+            ||
+            (int) $data['role_id'] !== (int) $administratorRole->id
+        ) {
+            $data['admin_scope'] = null;
+        }
+
 
         if (! empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);

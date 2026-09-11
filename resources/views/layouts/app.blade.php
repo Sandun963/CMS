@@ -208,6 +208,28 @@
                         </a>
                     </li>
 
+                    @if(auth()->user()->isItAdministrator())
+
+                        <li class="nav-item">
+
+                            <a
+                                class="nav-link
+                                {{ request()->routeIs('escalations.*')
+                                    ? 'active'
+                                    : '' }}"
+                                href="{{ route('escalations.index') }}"
+                            >
+
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                                Escalated Cases
+
+                            </a>
+
+                        </li>
+
+                    @endif                   
+
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}"
                         href="{{ route('reports.index') }}">

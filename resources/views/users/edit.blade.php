@@ -34,6 +34,41 @@
             </div>
 
             <div class="col-md-6 mb-3">
+                <label class="form-label small fw-semibold">
+                    Administrator Type
+                </label>
+
+                <select
+                    name="admin_scope"
+                    class="form-select"
+                >
+                    <option value="">
+                        Not Applicable
+                    </option>
+
+                    <option value="IT"
+                        @selected(old('admin_scope', $user->admin_scope) === 'IT')>
+                        IT Administrator
+                    </option>
+
+                    <option value="Health"
+                        @selected(old('admin_scope', $user->admin_scope) === 'Health')>
+                        Health Administrator
+                    </option>
+
+                    <option value="Agriculture"
+                        @selected(old('admin_scope', $user->admin_scope) === 'Agriculture')>
+                        Agriculture Administrator
+                    </option>
+
+                    <option value="Other"
+                        @selected(old('admin_scope', $user->admin_scope) === 'Other')>
+                        Other Administrator
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
 
                 <label class="form-label small fw-semibold">
                     Floor

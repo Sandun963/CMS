@@ -10,6 +10,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkReportController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EscalationController;
 
 
 /*
@@ -135,6 +136,10 @@ Route::middleware('auth')->group(function () {
             [OfficerAssignmentController::class, 'store']
         )->name('officer-assignments.store');
 
+        Route::post(
+            '/requests/{breakdownRequest}/forward-to-it-admin',
+            [EscalationController::class, 'forward']
+        )->name('escalations.forward');
     });
 
 
@@ -212,6 +217,21 @@ Route::middleware('auth')->group(function () {
             '/reports/export/pdf',
             [ReportController::class, 'exportPdf']
         )->name('reports.export.pdf');
+
+        Route::get(
+            '/escalations',
+            [EscalationController::class, 'index']
+        )->name('escalations.index');
+
+        Route::get(
+            '/escalations/{escalation}',
+            [EscalationController::class, 'show']
+        )->name('escalations.show');
+
+        Route::post(
+            '/escalations/{escalation}/decision',
+            [EscalationController::class, 'decide']
+        )->name('escalations.decide');
 
     });
 

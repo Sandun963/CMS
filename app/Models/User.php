@@ -12,7 +12,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'username', 'password', 'role_id', 'floor_id',
+        'name', 'email', 'username', 'password', 'role_id', 'admin_scope', 'floor_id',
         'division_id', 'department_id', 'phone', 'specialty', 'is_active',
     ];
 
@@ -45,6 +45,12 @@ class User extends Authenticatable
     public function isAdministrator(): bool
     {
         return $this->role?->code === Role::ADMINISTRATOR;
+    }
+
+    public function isItAdministrator(): bool
+    {
+        return $this->isAdministrator()
+            && $this->admin_scope === 'IT';
     }
 
     public function isAssignOfficer(): bool

@@ -424,9 +424,62 @@
 
                         </button>
 
-
                     </form>
 
+                        @if($breakdownRequest->status === 'Pending Reassignment')
+
+                            <hr class="my-4">
+
+                            <h6 class="fw-semibold">
+                                Unable to Resolve Internally?
+                            </h6>
+
+                            <p class="text-muted small">
+                                Forward this request to the IT Administrator
+                                for further review.
+                            </p>
+
+                            <form
+                                method="POST"
+                                action="{{ route(
+                                    'escalations.forward',
+                                    $breakdownRequest
+                                ) }}"
+                            >
+
+                                @csrf
+
+                                <div class="mb-3">
+
+                                    <label class="form-label small fw-semibold">
+
+                                        Reason for Forwarding
+                                        <span class="text-danger">*</span>
+
+                                    </label>
+
+                                    <textarea
+                                        name="reason"
+                                        class="form-control"
+                                        rows="3"
+                                        required
+                                        placeholder="Explain why this request requires IT Administrator review."
+                                    >{{ old('reason') }}</textarea>
+
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-warning btn-sm"
+                                >
+                                    <i class="bi bi-arrow-up-right-circle me-1"></i>
+
+                                    Forward to IT Admin
+                                </button>
+
+                            </form>
+
+                        @endif
                 </div>
 
             </div>

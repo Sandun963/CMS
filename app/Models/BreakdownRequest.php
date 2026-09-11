@@ -118,7 +118,20 @@ class BreakdownRequest extends Model
             'Closed' => 'bg-secondary',
             'Reopened' => 'bg-danger',
             'Pending Reassignment' => 'bg-danger',
+            'Outsource Required' => 'bg-dark',
             default => 'bg-secondary',
         };
     }
+
+    public function escalations()
+    {
+        return $this->hasMany(Escalation::class);
+    }
+
+    public function latestEscalation()
+    {
+        return $this->hasOne(Escalation::class)
+            ->latestOfMany();
+    }
+
 }
