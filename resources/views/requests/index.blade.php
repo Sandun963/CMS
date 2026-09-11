@@ -368,15 +368,6 @@
 
     </div>
 
-
-
-    {{-- Pagination --}}
-    <div class="card-footer bg-white">
-
-        {{ $requests->links() }}
-
-    </div>
-
 </div>
 
 

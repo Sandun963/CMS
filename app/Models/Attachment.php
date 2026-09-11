@@ -5,8 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Attachment extends Model
-{
-    protected $fillable = ['uploaded_by', 'original_name', 'path', 'mime_type', 'size'];
+    { 
+        
+    protected $fillable = [
+        'attachable_id',
+        'attachable_type',
+        'uploaded_by',
+        'original_name',
+        'path',
+        'mime_type',
+        'size',
+    ];
 
     public function attachable()
     {

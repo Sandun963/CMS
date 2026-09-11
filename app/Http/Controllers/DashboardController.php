@@ -86,7 +86,7 @@ class DashboardController extends Controller
 
     protected function assignOfficerDashboard($user)
     {
-        $newRequests = BreakdownRequest::with('department')
+        $newRequests = BreakdownRequest::with('division')
             ->whereIn('status', [
                 'New',
                 'Reopened',
@@ -127,7 +127,7 @@ class DashboardController extends Controller
             ->get();
 
         $myAssignments = \App\Models\Assignment::with([
-            'request.department',
+            'request.division',
             'latestOfficerAssignment.technicalOfficer'
         ])
             ->where('assign_officer_id', $user->id)

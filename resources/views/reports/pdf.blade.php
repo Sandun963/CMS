@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
 
     <title>
-        Breakdown Requests Report
+        Complain Requests Report
     </title>
 
     <style>
@@ -57,13 +57,15 @@
             color: white;
             padding: 7px;
             border: 1px solid #cccccc;
-            text-align: left;
+            text-align: center;
+            vertical-align: middle;
         }
 
         td {
             padding: 6px;
             border: 1px solid #cccccc;
-            vertical-align: top;
+            text-align: center;
+            vertical-align: middle;
         }
 
         tr:nth-child(even) {
@@ -87,11 +89,11 @@
 <div class="header">
 
     <h2>
-        IT Breakdown Management System
+        IT Complain Management System
     </h2>
 
     <p>
-        Breakdown Requests Report
+        Complain Requests Report
     </p>
 
 </div>
@@ -100,10 +102,14 @@
 <div class="generated-date">
 
     Generated:
-    {{ now()->format('d F Y - h:i A') }}
+    {{ now('Asia/Colombo')->format('d F Y - h:i A') }}
+
+    <br>
+
+    Exported By:
+    {{ auth()->user()->name }}
 
 </div>
-
 
 @if(
     !empty($filters['request_number'])

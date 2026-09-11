@@ -9,13 +9,30 @@ class BreakdownRequest extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'request_number', 'department_id', 'requested_by', 'category_id',
-        'title', 'description', 'location', 'status',
-        'assigned_to', 'received_at','area','machine_owner_name','machine_owner_contact',
-        'floor_id', 'division_id', 'area_id',
-    ];
+        protected $fillable = [
+            'request_number',
+            'department_id',
+            'requested_by',
+            'category_id',
 
+            'title',
+            'description',
+            'location',
+            'status',
+
+            'assigned_to',
+            'received_at',
+
+            'area',
+            'machine_owner_name',
+
+            'troubleshooter_name',
+            'troubleshooter_contact',
+
+            'floor_id',
+            'division_id',
+            'area_id',
+        ];
     
     public function floor()
     {

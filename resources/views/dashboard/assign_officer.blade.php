@@ -85,7 +85,7 @@
             <thead>
                 <tr>
                     <th>Request No.</th>
-                    <th>Department</th>
+                    <th>Division</th>
                     <th>Problem</th>
                     <th>Status</th>
                     <th>Submitted Date</th>
@@ -106,7 +106,7 @@
                         </td>
 
                         <td>
-                            {{ $request->department->name ?? '-' }}
+                            {{ $request->division->name ?? '-' }}
                         </td>
 
                         <td>
@@ -183,7 +183,7 @@
             <thead>
                 <tr>
                     <th>Request No.</th>
-                    <th>Department</th>
+                    <th>Division</th>
                     <th>Problem</th>
                     <th>Technical Officer</th>
                     <th>Status</th>
@@ -204,7 +204,7 @@
                         </td>
 
                         <td>
-                            {{ $a->request->department->name ?? '-' }}
+                            {{ $a->request->division->name ?? '-' }}
                         </td>
 
                         <td>

@@ -214,10 +214,52 @@ class BreakdownRequestController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $requests = $query
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+        /*
+        |--------------------------------------------------------------------------
+        | Check Whether Search / Filters Are Applied
+        |--------------------------------------------------------------------------
+        */
+
+        $hasFilters =
+            $request->filled('q') ||
+            $request->filled('status') ||
+            $request->filled('floor_id') ||
+            $request->filled('division_id');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Get Requests
+        |--------------------------------------------------------------------------
+        */
+
+        if ($hasFilters) {
+
+            /*
+            * A search/filter is active.
+            *
+            * Search is performed against all requests in the database
+            * that this logged-in user is allowed to see.
+            *
+            * Return ALL matching results.
+            */
+            $requests = $query
+                ->latest()
+                ->get();
+
+        } else {
+
+            /*
+            * No search/filter.
+            *
+            * Do NOT load the entire requests table.
+            * Only load the newest 50 requests.
+            */
+            $requests = $query
+                ->latest()
+                ->limit(50)
+                ->get();
+        }
 
 
         /*
