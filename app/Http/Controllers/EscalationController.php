@@ -79,7 +79,7 @@ class EscalationController extends Controller
                 $user->id,
 
             'trigger_type' =>
-                'Technical Officer Not Done',
+                'Pending Reassignment Escalation',
 
             'reason' =>
                 $data['reason'],

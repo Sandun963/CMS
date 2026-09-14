@@ -304,182 +304,113 @@
                 <div class="card-body">
 
 
-                    <form
-                        method="POST"
-                        action="{{ route(
-                            'officer-assignments.store',
-                            $breakdownRequest
-                        ) }}"
-                    >
+                    {{-- ============================= --}}
+                    {{-- REASSIGN TECHNICIAN FORM --}}
+                    {{-- ============================= --}}
+
+                    <form method="POST"
+                        action="{{ route('officer-assignments.store', $breakdownRequest) }}">
 
                         @csrf
 
+                        <div class="row g-3">
 
-                        <div class="row g-2">
-
-
-                            {{-- Technical Officer --}}
                             <div class="col-md-5">
-
-                                <label class="form-label small">
-
-                                    Technical Officer
-
-                                    <span class="text-danger">
-                                        *
-                                    </span>
-
+                                <label class="form-label">
+                                    Technical Officer <span class="text-danger">*</span>
                                 </label>
 
+                                <select name="technical_officer_id"
+                                        class="form-select"
+                                        required>
 
-                                <select
-                                    name="technical_officer_id"
-                                    class="form-select"
-                                    required
-                                >
+                                    <option value="">Select technician</option>
 
-                                    <option value="">
-
-                                        Select technician
-
-                                    </option>
-
-
-                                    @foreach(
-                                        $technicalOfficers
-                                        as $t
-                                    )
-
-                                        <option
-                                            value="{{ $t->id }}"
-                                        >
-
-                                            {{ $t->name }}
-
-                                            @if($t->specialty)
-
-                                                ({{ $t->specialty }})
-
-                                            @endif
-
+                                    @foreach($technicalOfficers as $officer)
+                                        <option value="{{ $officer->id }}">
+                                            {{ $officer->name }}
                                         </option>
-
                                     @endforeach
 
                                 </select>
-
                             </div>
 
-
-                            {{-- Due Date --}}
                             <div class="col-md-3">
-
-                                <label class="form-label small">
-
-                                    Due Date
-                                    (optional)
-
+                                <label class="form-label">
+                                    Due Date (optional)
                                 </label>
 
-
-                                <input
-                                    type="date"
+                                <input type="date"
                                     name="due_date"
-                                    class="form-control"
-                                >
-
+                                    class="form-control">
                             </div>
 
-
-                            {{-- Note --}}
                             <div class="col-md-4">
-
-                                <label class="form-label small">
-
-                                    Note
-                                    (optional)
-
+                                <label class="form-label">
+                                    Note (optional)
                                 </label>
 
-
-                                <input
-                                    type="text"
+                                <input type="text"
                                     name="note"
-                                    class="form-control"
-                                >
-
+                                    class="form-control">
                             </div>
 
                         </div>
 
-
-                        <button
-                            type="submit"
-                            class="btn btn-primary btn-sm mt-3"
-                        >
-
-                            <i class="bi bi-send me-1"></i>
-
-                            Assign Technical Officer
-
-                        </button>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                Assign Technical Officer
+                            </button>
+                        </div>
 
                     </form>
 
-                        @if($breakdownRequest->status === 'Pending Reassignment')
 
-                            <hr class="my-4">
+                    {{-- ============================= --}}
+                    {{-- FORWARD TO IT ADMIN --}}
+                    {{-- SEPARATE FORM --}}
+                    {{-- ============================= --}}
 
-                            <h6 class="fw-semibold">
-                                Unable to Resolve Internally?
-                            </h6>
+                    @if($breakdownRequest->status === 'Pending Reassignment')
 
-                            <p class="text-muted small">
-                                Forward this request to the IT Administrator
-                                for further review.
-                            </p>
+                        <hr class="my-4">
 
-                            <form
-                                method="POST"
-                                action="{{ route(
-                                    'escalations.forward',
-                                    $breakdownRequest
-                                ) }}"
-                            >
+                        <h5 class="fw-semibold">
+                            Unable to Resolve Internally?
+                        </h5>
 
-                                @csrf
+                        <p class="text-muted">
+                            Forward this request to the IT Administrator for further review.
+                        </p>
 
-                                <div class="mb-3">
+                        <form method="POST"
+                            action="{{ route('escalations.forward', $breakdownRequest) }}">
 
-                                    <label class="form-label small fw-semibold">
+                            @csrf
 
-                                        Reason for Forwarding
-                                        <span class="text-danger">*</span>
+                            <div class="mb-3">
 
-                                    </label>
+                                <label class="form-label fw-semibold">
+                                    Reason for Forwarding
+                                    <span class="text-danger">*</span>
+                                </label>
 
-                                    <textarea
-                                        name="reason"
+                                <textarea name="reason"
                                         class="form-control"
-                                        rows="3"
+                                        rows="4"
                                         required
-                                        placeholder="Explain why this request requires IT Administrator review."
-                                    >{{ old('reason') }}</textarea>
+                                        placeholder="Explain why this request requires IT Administrator review.">{{ old('reason') }}</textarea>
 
-                                </div>
+                            </div>
 
-                                <button
-                                    type="submit"
-                                    class="btn btn-warning btn-sm"
-                                >
-                                    <i class="bi bi-arrow-up-right-circle me-1"></i>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-arrow-up-right-circle me-1"></i>
+                                Forward to IT Admin
+                            </button>
 
-                                    Forward to IT Admin
-                                </button>
+                        </form>
 
-                            </form>
-
-                        @endif
+                    @endif
                 </div>
 
             </div>

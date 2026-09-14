@@ -86,7 +86,6 @@
                 <tr>
                     <th>Request No.</th>
                     <th>Division</th>
-                    <th>Problem</th>
                     <th>Status</th>
                     <th>Submitted Date</th>
                     <th>Action</th>
@@ -107,10 +106,6 @@
 
                         <td>
                             {{ $request->division->name ?? '-' }}
-                        </td>
-
-                        <td>
-                            {{ $request->title }}
                         </td>
 
                         <td>
@@ -184,8 +179,6 @@
                 <tr>
                     <th>Request No.</th>
                     <th>Division</th>
-                    <th>Problem</th>
-                    <th>Technical Officer</th>
                     <th>Status</th>
                     <th>Due Date</th>
                 </tr>
@@ -205,19 +198,6 @@
 
                         <td>
                             {{ $a->request->division->name ?? '-' }}
-                        </td>
-
-                        <td>
-                            {{ $a->request->title }}
-                        </td>
-
-                        <td>
-                            {{
-                                $a->latestOfficerAssignment
-                                    ?->technicalOfficer
-                                    ?->name
-                                ?? 'Not assigned'
-                            }}
                         </td>
 
                         <td>
