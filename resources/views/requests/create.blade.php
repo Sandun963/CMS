@@ -138,7 +138,7 @@
                 for="category"
                 class="form-label fw-semibold"
             >
-                Category
+                Category <span class="text-danger">*</span>
             </label>
 
             <select
@@ -147,7 +147,7 @@
                 class="form-select"
             >
                 <option value="">
-                    Select category (optional)
+                    Select category 
                 </option>
 
                 @foreach($categories as $cat)

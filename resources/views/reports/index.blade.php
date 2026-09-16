@@ -128,6 +128,7 @@
                             'In Progress',
                             'Pending Reassignment',
                             'Resolved',
+                            'Outsource Required',
                             'Closed',
                             'Reopened'
                         ] as $status)

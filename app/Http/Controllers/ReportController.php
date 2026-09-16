@@ -3,405 +3,598 @@
 namespace App\Http\Controllers;
 
 use App\Models\Area;
+use App\Models\BreakdownRequest;
 use App\Models\Division;
 use App\Models\Floor;
+use App\Models\Role;
+use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
-class LocationController extends Controller
+class ReportController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | MANAGE LOCATIONS PAGE
-    |--------------------------------------------------------------------------
-    */
-
-    public function index()
+    /**
+     * Display report summary page + filtered preview.
+     */
+    public function index(Request $request)
     {
-        $floors = Floor::with([
-            'divisions' => function ($query) {
-                $query->orderBy('name')
-                    ->with([
-                        'areas' => function ($query) {
-                            $query->orderBy('name');
-                        }
-                    ]);
-            }
-        ])
-        ->orderBy('name')
-        ->get();
+        abort_unless(
+            Auth::user()->isAdministrator(),
+            403
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Requests by Division
+        |--------------------------------------------------------------------------
+        */
+
+        $byDivision = BreakdownRequest::selectRaw(
+                'division_id, count(*) as total'
+            )
+            ->whereNotNull('division_id')
+            ->with('division')
+            ->groupBy('division_id')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Requests by Status
+        |--------------------------------------------------------------------------
+        */
+
+        $byStatus = BreakdownRequest::selectRaw(
+                'status, count(*) as total'
+            )
+            ->groupBy('status')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Requests by Category
+        |--------------------------------------------------------------------------
+        */
+
+        $byCategory = BreakdownRequest::selectRaw(
+                'category_id, count(*) as total'
+            )
+            ->with('category')
+            ->groupBy('category_id')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Requests by Technical Officer
+        |--------------------------------------------------------------------------
+        */
+
+        $byTechnician = BreakdownRequest::selectRaw(
+                'assigned_to, count(*) as total'
+            )
+            ->whereNotNull('assigned_to')
+            ->with('assignedTo')
+            ->groupBy('assigned_to')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Floors
+        |--------------------------------------------------------------------------
+        */
+
+        $floors = Floor::where(
+                'is_active',
+                true
+            )
+            ->orderBy('id')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Technical Officers
+        |--------------------------------------------------------------------------
+        */
+
+        $technicians = User::whereHas(
+                'role',
+                function ($query) {
+                    $query->where(
+                        'code',
+                        Role::TECHNICAL_OFFICER
+                    );
+                }
+            )
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Department / Ministry Users
+        |--------------------------------------------------------------------------
+        */
+
+        $departmentUsers = User::whereHas(
+                'role',
+                function ($query) {
+                    $query->where(
+                        'code',
+                        Role::MINISTRY_USER
+                    );
+                }
+            )
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Check Whether Filters Are Applied
+        |--------------------------------------------------------------------------
+        */
+
+        $hasFilters =
+            $request->filled('request_number')
+            || $request->filled('status')
+            || $request->filled('floor_id')
+            || $request->filled('division_id')
+            || $request->filled('area_id')
+            || $request->filled('department_user_id')
+            || $request->filled('technician_id')
+            || $request->filled('date_from')
+            || $request->filled('date_to');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Filtered Request Preview
+        |--------------------------------------------------------------------------
+        */
+
+        $filteredRequests = collect();
+
+        if ($hasFilters) {
+
+            $filteredQuery = BreakdownRequest::with([
+                'department',
+                'floor',
+                'division',
+                'areaLocation',
+                'category',
+                'requestedBy',
+                'assignedTo',
+            ]);
+
+            $this->applyFilters(
+                $filteredQuery,
+                $request
+            );
+
+            $filteredRequests = $filteredQuery
+                ->latest()
+                ->paginate(10)
+                ->withQueryString();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Return View
+        |--------------------------------------------------------------------------
+        */
 
         return view(
-            'locations.index',
-            compact('floors')
+            'reports.index',
+            compact(
+                'byDivision',
+                'byStatus',
+                'byCategory',
+                'byTechnician',
+                'floors',
+                'technicians',
+                'departmentUsers',
+                'filteredRequests',
+                'hasFilters'
+            )
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | FLOOR
-    |--------------------------------------------------------------------------
-    */
-
-    public function storeFloor(Request $request)
+    /**
+     * Export detailed breakdown request report as PDF.
+     */
+    public function exportPdf(Request $request)
     {
-        $data = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                'unique:floors,name',
-            ],
+        abort_unless(
+            Auth::user()->isAdministrator(),
+            403
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Build Query
+        |--------------------------------------------------------------------------
+        */
+
+        $query = BreakdownRequest::with([
+            'department',
+            'floor',
+            'division',
+            'areaLocation',
+            'category',
+            'requestedBy',
+            'assignedTo',
         ]);
 
-        Floor::create([
-            'name' => trim($data['name']),
-            'is_active' => true,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Apply Same Filters Used By Preview
+        |--------------------------------------------------------------------------
+        */
 
-        return back()->with(
-            'success',
-            'Floor added successfully.'
+        $this->applyFilters(
+            $query,
+            $request
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Get Requests
+        |--------------------------------------------------------------------------
+        */
+
+        $requests = $query
+            ->latest()
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Filter Values
+        |--------------------------------------------------------------------------
+        */
+
+        $filters = [
+            'request_number' =>
+                $request->request_number,
+
+            'status' =>
+                $request->status,
+
+            'floor_id' =>
+                $request->floor_id,
+
+            'division_id' =>
+                $request->division_id,
+
+            'area_id' =>
+                $request->area_id,
+
+            'department_user_id' =>
+                $request->department_user_id,
+
+            'technician_id' =>
+                $request->technician_id,
+
+            'date_from' =>
+                $request->date_from,
+
+            'date_to' =>
+                $request->date_to,
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Selected Filter Names For PDF
+        |--------------------------------------------------------------------------
+        */
+
+        $selectedFloor = null;
+        $selectedDivision = null;
+        $selectedArea = null;
+        $selectedDepartmentUser = null;
+        $selectedTechnician = null;
+
+        if ($request->filled('floor_id')) {
+
+            $selectedFloor = Floor::find(
+                $request->floor_id
+            );
+        }
+
+        if ($request->filled('division_id')) {
+
+            $selectedDivision = Division::find(
+                $request->division_id
+            );
+        }
+
+        if ($request->filled('area_id')) {
+
+            $selectedArea = Area::find(
+                $request->area_id
+            );
+        }
+
+        if ($request->filled('department_user_id')) {
+
+            $selectedDepartmentUser = User::find(
+                $request->department_user_id
+            );
+        }
+
+        if ($request->filled('technician_id')) {
+
+            $selectedTechnician = User::find(
+                $request->technician_id
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Generate PDF
+        |--------------------------------------------------------------------------
+        */
+
+        $pdf = Pdf::loadView(
+                'reports.pdf',
+                compact(
+                    'requests',
+                    'filters',
+                    'selectedFloor',
+                    'selectedDivision',
+                    'selectedArea',
+                    'selectedDepartmentUser',
+                    'selectedTechnician'
+                )
+            )
+            ->setPaper(
+                'a4',
+                'landscape'
+            );
+
+        return $pdf->download(
+            'breakdown_requests_' .
+            now()->format('Y-m-d_H-i-s') .
+            '.pdf'
         );
     }
 
-
-    public function updateFloor(
-        Request $request,
-        Floor $floor
+    /**
+     * Apply report filters to BreakdownRequest query.
+     */
+    private function applyFilters(
+        $query,
+        Request $request
     ) {
-        $data = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique(
-                    'floors',
-                    'name'
-                )->ignore($floor->id),
-            ],
+        /*
+        |--------------------------------------------------------------------------
+        | Request Number
+        |--------------------------------------------------------------------------
+        */
 
-            'is_active' => [
-                'required',
-                'boolean',
-            ],
-        ]);
+        if ($request->filled('request_number')) {
 
-        $floor->update([
-            'name' => trim($data['name']),
-            'is_active' => $data['is_active'],
-        ]);
-
-        return back()->with(
-            'success',
-            'Floor updated successfully.'
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DIVISION
-    |--------------------------------------------------------------------------
-    */
-
-    public function storeDivision(Request $request)
-    {
-        $data = $request->validate([
-            'floor_id' => [
-                'required',
-                'integer',
-                'exists:floors,id',
-            ],
-
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-        ]);
-
-        $exists = Division::where(
-                'floor_id',
-                $data['floor_id']
-            )
-            ->where(
-                'name',
-                trim($data['name'])
-            )
-            ->exists();
-
-        if ($exists) {
-
-            return back()
-                ->withErrors([
-                    'division_name' =>
-                        'This division already exists on the selected floor.'
-                ])
-                ->withInput();
+            $query->where(
+                'request_number',
+                'like',
+                '%' . $request->request_number . '%'
+            );
         }
 
-        Division::create([
-            'floor_id' => $data['floor_id'],
-            'name' => trim($data['name']),
-            'is_active' => true,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Status
+        |--------------------------------------------------------------------------
+        */
 
-        return back()->with(
-            'success',
-            'Division added successfully.'
-        );
-    }
+        if ($request->filled('status')) {
 
-
-    public function updateDivision(
-        Request $request,
-        Division $division
-    ) {
-        $data = $request->validate([
-            'floor_id' => [
-                'required',
-                'integer',
-                'exists:floors,id',
-            ],
-
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
-            'is_active' => [
-                'required',
-                'boolean',
-            ],
-        ]);
-
-        $exists = Division::where(
-                'floor_id',
-                $data['floor_id']
-            )
-            ->where(
-                'name',
-                trim($data['name'])
-            )
-            ->where(
-                'id',
-                '!=',
-                $division->id
-            )
-            ->exists();
-
-        if ($exists) {
-
-            return back()
-                ->withErrors([
-                    'division_name' =>
-                        'This division already exists on the selected floor.'
-                ])
-                ->withInput();
+            $query->where(
+                'status',
+                $request->status
+            );
         }
 
-        $division->update([
-            'floor_id' => $data['floor_id'],
-            'name' => trim($data['name']),
-            'is_active' => $data['is_active'],
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Floor
+        |--------------------------------------------------------------------------
+        |
+        | New requests use floor_id.
+        | Legacy requests may still use department.floor.
+        |
+        */
 
-        return back()->with(
-            'success',
-            'Division updated successfully.'
-        );
-    }
+        if ($request->filled('floor_id')) {
 
+            $selectedFloor = Floor::find(
+                $request->floor_id
+            );
 
-    /*
-    |--------------------------------------------------------------------------
-    | AREA
-    |--------------------------------------------------------------------------
-    */
+            $query->where(
+                function ($q) use (
+                    $request,
+                    $selectedFloor
+                ) {
 
-    public function storeArea(Request $request)
-    {
-        $data = $request->validate([
-            'division_id' => [
-                'required',
-                'integer',
-                'exists:divisions,id',
-            ],
+                    $q->where(
+                        'floor_id',
+                        $request->floor_id
+                    );
 
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-        ]);
+                    if ($selectedFloor) {
 
-        $exists = Area::where(
-                'division_id',
-                $data['division_id']
-            )
-            ->where(
-                'name',
-                trim($data['name'])
-            )
-            ->exists();
+                        $q->orWhereHas(
+                            'department',
+                            function ($departmentQuery) use (
+                                $selectedFloor
+                            ) {
 
-        if ($exists) {
-
-            return back()
-                ->withErrors([
-                    'area_name' =>
-                        'This area already exists in the selected division.'
-                ])
-                ->withInput();
+                                $departmentQuery->where(
+                                    'floor',
+                                    $selectedFloor->name
+                                );
+                            }
+                        );
+                    }
+                }
+            );
         }
 
-        Area::create([
-            'division_id' => $data['division_id'],
-            'name' => trim($data['name']),
-            'is_active' => true,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Division
+        |--------------------------------------------------------------------------
+        |
+        | New requests use division_id.
+        | Legacy requests may still match department name.
+        |
+        */
 
-        return back()->with(
-            'success',
-            'Area added successfully.'
-        );
-    }
+        if ($request->filled('division_id')) {
 
+            $selectedDivision =
+                Division::with('floor')
+                    ->find(
+                        $request->division_id
+                    );
 
-    public function updateArea(
-        Request $request,
-        Area $area
-    ) {
-        $data = $request->validate([
-            'division_id' => [
-                'required',
-                'integer',
-                'exists:divisions,id',
-            ],
+            $query->where(
+                function ($q) use (
+                    $request,
+                    $selectedDivision
+                ) {
 
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+                    $q->where(
+                        'division_id',
+                        $request->division_id
+                    );
 
-            'is_active' => [
-                'required',
-                'boolean',
-            ],
-        ]);
+                    if ($selectedDivision) {
 
-        $exists = Area::where(
-                'division_id',
-                $data['division_id']
-            )
-            ->where(
-                'name',
-                trim($data['name'])
-            )
-            ->where(
-                'id',
-                '!=',
-                $area->id
-            )
-            ->exists();
+                        $q->orWhereHas(
+                            'department',
+                            function ($departmentQuery) use (
+                                $selectedDivision
+                            ) {
 
-        if ($exists) {
+                                $departmentQuery->where(
+                                    'name',
+                                    $selectedDivision->name
+                                );
 
-            return back()
-                ->withErrors([
-                    'area_name' =>
-                        'This area already exists in the selected division.'
-                ])
-                ->withInput();
+                                if (
+                                    $selectedDivision->floor
+                                ) {
+
+                                    $departmentQuery->where(
+                                        'floor',
+                                        $selectedDivision
+                                            ->floor
+                                            ->name
+                                    );
+                                }
+                            }
+                        );
+                    }
+                }
+            );
         }
 
-        $area->update([
-            'division_id' => $data['division_id'],
-            'name' => trim($data['name']),
-            'is_active' => $data['is_active'],
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Area
+        |--------------------------------------------------------------------------
+        |
+        | New requests use area_id.
+        | Legacy requests may still use area text.
+        |
+        */
 
-        return back()->with(
-            'success',
-            'Area updated successfully.'
-        );
-    }
+        if ($request->filled('area_id')) {
 
+            $selectedArea = Area::find(
+                $request->area_id
+            );
 
-    /*
-    |--------------------------------------------------------------------------
-    | AJAX - DIVISIONS FOR SELECTED FLOOR
-    |--------------------------------------------------------------------------
-    |
-    | Used by dependent dropdowns:
-    |
-    | Floor
-    |   ↓
-    | Division
-    |
-    | Available to authenticated users through the existing route.
-    |
-    */
+            $query->where(
+                function ($q) use (
+                    $request,
+                    $selectedArea
+                ) {
 
-    public function divisions(Floor $floor)
-    {
-        $divisions = Division::where(
-                'floor_id',
-                $floor->id
-            )
-            ->where(
-                'is_active',
-                true
-            )
-            ->orderBy('name')
-            ->get([
-                'id',
-                'name',
-            ]);
+                    $q->where(
+                        'area_id',
+                        $request->area_id
+                    );
 
-        return response()->json(
-            $divisions
-        );
-    }
+                    if ($selectedArea) {
 
+                        $q->orWhere(
+                            'area',
+                            $selectedArea->name
+                        );
+                    }
+                }
+            );
+        }
 
-    /*
-    |--------------------------------------------------------------------------
-    | AJAX - AREAS FOR SELECTED DIVISION
-    |--------------------------------------------------------------------------
-    |
-    | Used by dependent dropdowns:
-    |
-    | Division
-    |   ↓
-    | Area
-    |
-    | Available to authenticated users through the existing route.
-    |
-    */
+        /*
+        |--------------------------------------------------------------------------
+        | Department / Ministry User
+        |--------------------------------------------------------------------------
+        */
 
-    public function areas(Division $division)
-    {
-        $areas = Area::where(
-                'division_id',
-                $division->id
-            )
-            ->where(
-                'is_active',
-                true
-            )
-            ->orderBy('name')
-            ->get([
-                'id',
-                'name',
-            ]);
+        if ($request->filled('department_user_id')) {
 
-        return response()->json(
-            $areas
-        );
+            $query->where(
+                'requested_by',
+                $request->department_user_id
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Technical Officer
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('technician_id')) {
+
+            $query->where(
+                'assigned_to',
+                $request->technician_id
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | From Date
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('date_from')) {
+
+            $query->whereDate(
+                'created_at',
+                '>=',
+                $request->date_from
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | To Date
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('date_to')) {
+
+            $query->whereDate(
+                'created_at',
+                '<=',
+                $request->date_to
+            );
+        }
+
+        return $query;
     }
 }

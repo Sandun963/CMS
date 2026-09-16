@@ -117,7 +117,7 @@ class DashboardController extends Controller
                 'assignment_id',
                 $assignmentIds
             )
-            ->where('status', '!=', 'Done')
+            ->whereIn('status',['Pending','In Progress',])
             ->whereDate('due_date', '<', now())
             ->count(),
         ];
