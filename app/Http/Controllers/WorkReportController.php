@@ -243,7 +243,7 @@ class WorkReportController extends Controller
         | assigned_to        = NULL
         |
         | Next step:
-        | Assign Officer assigns another / same Technical Officer.
+        | Assign Officer assigns another / same Technical Officer or Inform and forward to IT Head.
         |
         */
 

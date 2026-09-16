@@ -11,7 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EscalationController;
-
+use App\Http\Controllers\CategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -185,8 +185,52 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:sup_admin')->group(function () {
 
-        Route::resource('users', UserController::class)
-            ->except(['show']);
+        /*
+        |--------------------------------------------------------------------------
+        | User Management
+        |--------------------------------------------------------------------------
+        */
+
+        Route::resource(
+            'users',
+            UserController::class
+        )->except(['show']);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Category Management
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/categories',
+            [CategoryController::class, 'index']
+        )->name('categories.index');
+
+
+        Route::get(
+            '/categories/create',
+            [CategoryController::class, 'create']
+        )->name('categories.create');
+
+
+        Route::post(
+            '/categories',
+            [CategoryController::class, 'store']
+        )->name('categories.store');
+
+
+        Route::get(
+            '/categories/{category}/edit',
+            [CategoryController::class, 'edit']
+        )->name('categories.edit');
+
+
+        Route::put(
+            '/categories/{category}',
+            [CategoryController::class, 'update']
+        )->name('categories.update');
 
     });
 

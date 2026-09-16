@@ -12,42 +12,72 @@ class CategorySeeder extends Seeder
         $categories = [
 
             [
-                'name' => 'Hardware & Repairing',
-                'code' => 'HARDWARE',
+                'name' => 'Printer Not Working',
+                'code' => 'PRINTER',
             ],
 
             [
-                'name' => 'Network & Maintenance',
+                'name' => 'Computer Not Working',
+                'code' => 'COMPUTER',
+            ],
+
+            [
+                'name' => 'Monitor Not Working',
+                'code' => 'MONITOR',
+            ],
+
+            [
+                'name' => 'Keyboard / Mouse Issue',
+                'code' => 'KEYBOARD_MOUSE',
+            ],
+
+            [
+                'name' => 'Network Connection Issue',
                 'code' => 'NETWORK',
             ],
 
             [
-                'name' => 'Systems & Web',
-                'code' => 'SYSTEMS',
+                'name' => 'Internet Not Working',
+                'code' => 'INTERNET',
             ],
 
             [
-                'name' => 'Communications',
-                'code' => 'COMM',
+                'name' => 'Email Issue',
+                'code' => 'EMAIL',
             ],
 
             [
-                'name' => 'ICT Equipments',
-                'code' => 'ICT_EQ',
+                'name' => 'Scanner Issue',
+                'code' => 'SCANNER',
+            ],
+
+            [
+                'name' => 'Software Issue',
+                'code' => 'SOFTWARE',
+            ],
+
+            [
+                'name' => 'Operating System Issue',
+                'code' => 'OS',
+            ],
+
+            [
+                'name' => 'Other IT Issue',
+                'code' => 'OTHER_IT',
             ],
 
         ];
 
+
         foreach ($categories as $category) {
 
             Category::updateOrCreate(
-
                 [
-                    'code' => $category['code']
+                    'code' => $category['code'],
                 ],
-
                 [
                     'name' => $category['name'],
+                    'description' => null,
                     'is_active' => true,
                 ]
             );

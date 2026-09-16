@@ -166,44 +166,6 @@
         </div>
 
 
-        {{-- Sub Category --}}
-        <div class="mb-3">
-
-            <label
-                for="subCategory"
-                class="form-label fw-semibold"
-            >
-                Sub Category
-                <span class="text-danger">*</span>
-            </label>
-
-            <select
-                name="title"
-                id="subCategory"
-                class="form-select"
-                required
-            >
-
-                <option value="">
-                    Select Sub Category
-                </option>
-
-                @foreach($subCategories as $subCategory)
-
-                    <option
-                        value="{{ $subCategory }}"
-                        @selected(old('title') === $subCategory)
-                    >
-                        {{ $subCategory }}
-                    </option>
-
-                @endforeach
-
-            </select>
-
-        </div>
-
-
         {{-- Description --}}
         <div class="mb-3">
 

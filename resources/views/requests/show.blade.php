@@ -95,10 +95,13 @@
             <div class="card-body">
 
 
-                {{-- Sub Category --}}
+                {{-- Category --}}
+
                 <h6 class="mb-2">
 
-                    {{ $breakdownRequest->title }}
+                    {{ $breakdownRequest->category?->name
+                        ?? $breakdownRequest->title
+                        ?? 'N/A' }}
 
                 </h6>
 
@@ -337,12 +340,23 @@
 
                             <div class="col-md-3">
                                 <label class="form-label">
-                                    Due Date (optional)
+                                    Due Date <span class="text-danger">*</span>
                                 </label>
 
-                                <input type="date"
+                                <input
+                                    type="date"
                                     name="due_date"
-                                    class="form-control">
+                                    class="form-control"
+                                    value="{{ old('due_date') }}"
+                                    min="{{ now()->format('Y-m-d') }}"
+                                    required
+                                >
+
+                                @error('due_date')
+                                    <div class="text-danger small mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
 
                             <div class="col-md-4">

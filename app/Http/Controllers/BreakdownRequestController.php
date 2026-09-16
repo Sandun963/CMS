@@ -293,7 +293,7 @@ class BreakdownRequestController extends Controller
     {
         /*
         |--------------------------------------------------------------------------
-        | Categories
+        | Active Categories
         |--------------------------------------------------------------------------
         */
 
@@ -309,9 +309,6 @@ class BreakdownRequestController extends Controller
         |--------------------------------------------------------------------------
         | Floors
         |--------------------------------------------------------------------------
-        |
-        | New location table.
-        |
         */
 
         $floors = Floor::where(
@@ -322,24 +319,11 @@ class BreakdownRequestController extends Controller
             ->get();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Sub Categories
-        |--------------------------------------------------------------------------
-        */
-
-        $subCategories = config(
-            'breakdown.sub_categories',
-            []
-        );
-
-
         return view(
             'requests.create',
             compact(
                 'categories',
-                'floors',
-                'subCategories'
+                'floors'
             )
         );
     }
@@ -361,28 +345,22 @@ class BreakdownRequestController extends Controller
 
         $data = $request->validate([
 
-            'category_id' => [
-                'nullable',
-                'exists:categories,id',
-            ],
+        'category_id' => [
+            'required',
+            'integer',
 
-
-            /*
-             * UI label = Sub Category.
-             * Stored in existing title column.
-             */
-
-            'title' => [
-                'required',
-                'string',
-
-                Rule::in(
-                    config(
-                        'breakdown.sub_categories',
-                        []
-                    )
-                ),
-            ],
+            Rule::exists(
+                'categories',
+                'id'
+            )->where(
+                function ($query) {
+                    $query->where(
+                        'is_active',
+                        true
+                    );
+                }
+            ),
+        ],
 
 
             'description' => [
@@ -597,16 +575,23 @@ class BreakdownRequestController extends Controller
 
 
             'category_id' =>
-                $data['category_id'] ?? null,
+                $data['category_id'],
 
 
             /*
-             * Existing title column.
-             * UI label = Sub Category.
-             */
+            |--------------------------------------------------------------------------
+            | Legacy title
+            |--------------------------------------------------------------------------
+            |
+            | The system previously stored the Sub Category in title.
+            | Keep title populated for backward compatibility.
+            |
+            */
 
             'title' =>
-                $data['title'],
+                Category::findOrFail(
+                    $data['category_id']
+                )->name,
 
 
             'description' =>
@@ -939,30 +924,70 @@ class BreakdownRequestController extends Controller
         );
     }
 
-
     /**
-     * Generate request number.
+     * Generate request/token number.
      *
-     * Example:
-     * BRK-2026-0001
+     * Format:
+     * CMS/26/0001
+     * CMS/26/0002
+     *
+     * The sequence automatically restarts
+     * from 0001 when a new year begins.
      */
     protected function generateRequestNumber(): string
     {
-        $year = now()->year;
+        $year = now()->format('y');
 
+        $prefix = "CMS/{$year}/";
 
-        $count = BreakdownRequest::whereYear(
-                'created_at',
-                $year
+        /*
+        |--------------------------------------------------------------------------
+        | Find Highest Number For Current Year
+        |--------------------------------------------------------------------------
+        */
+
+        $lastRequest = BreakdownRequest::where(
+                'request_number',
+                'like',
+                $prefix . '%'
             )
-            ->count()
-            + 1;
+            ->orderByRaw(
+                'CAST(SUBSTRING_INDEX(request_number, "/", -1) AS UNSIGNED) DESC'
+            )
+            ->first();
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Determine Next Sequence
+        |--------------------------------------------------------------------------
+        */
+
+        $nextNumber = 1;
+
+        if ($lastRequest) {
+
+            $parts = explode(
+                '/',
+                $lastRequest->request_number
+            );
+
+            $lastNumber = (int) end($parts);
+
+            $nextNumber = $lastNumber + 1;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Generate Final Token
+        |--------------------------------------------------------------------------
+        */
 
         return sprintf(
-            'BRK-%d-%04d',
+            'CMS/%s/%04d',
             $year,
-            $count
+            $nextNumber
         );
     }
 

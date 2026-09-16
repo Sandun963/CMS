@@ -37,7 +37,7 @@ class OfficerAssignmentController extends Controller
 
         $data = $request->validate([
             'technical_officer_id' => ['required', 'exists:users,id'],
-            'due_date' => ['nullable', 'date'],
+            'due_date' => ['required', 'date' , 'after_or_equal:today',],
             'note' => ['nullable', 'string'],
         ]);
 
@@ -65,7 +65,7 @@ class OfficerAssignmentController extends Controller
             'assignment_id' => $assignment->id,
             'technical_officer_id' => $data['technical_officer_id'],
             'assigned_by' => $user->id,
-            'due_date' => $data['due_date'] ?? null,
+            'due_date' => $data['due_date'],
             'note' => $data['note'] ?? null,
             'assigned_at' => now(),
             'status' => 'Pending',
