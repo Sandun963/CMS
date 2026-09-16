@@ -94,7 +94,7 @@
                         id="requestNumber"
                         class="form-control"
                         value="{{ request('request_number') }}"
-                        placeholder="e.g. BRK-2026-0001"
+                        placeholder="e.g. CMS/26/0001"
                     >
 
                 </div>
@@ -242,6 +242,47 @@
                         <option value="">
                             Select Division First
                         </option>
+
+                    </select>
+
+                </div>
+
+                {{-- =====================================================
+                    DEPARTMENT / MINISTRY USER
+                ====================================================== --}}
+                <div class="col-md-4">
+
+                    <label
+                        for="reportDepartmentUser"
+                        class="form-label"
+                    >
+                        Department User
+                    </label>
+
+                    <select
+                        name="department_user_id"
+                        id="reportDepartmentUser"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            All Department Users
+                        </option>
+
+                        @foreach($departmentUsers as $departmentUser)
+
+                            <option
+                                value="{{ $departmentUser->id }}"
+                                @selected(
+                                    (string) request('department_user_id')
+                                    ===
+                                    (string) $departmentUser->id
+                                )
+                            >
+                                {{ $departmentUser->name }}
+                            </option>
+
+                        @endforeach
 
                     </select>
 

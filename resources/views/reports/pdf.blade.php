@@ -117,6 +117,7 @@
     || !empty($filters['floor_id'])
     || !empty($filters['division_id'])
     || !empty($filters['area_id'])
+    || !empty($filters['department_user_id'])
     || !empty($filters['technician_id'])
     || !empty($filters['date_from'])
     || !empty($filters['date_to'])
@@ -163,7 +164,12 @@
             &nbsp;&nbsp;
         @endif
 
-
+        @if($selectedDepartmentUser)
+            Department User:
+            {{ $selectedDepartmentUser->name }}
+            &nbsp;&nbsp;
+        @endif
+        
         @if($selectedTechnician)
             Technical Officer:
             {{ $selectedTechnician->name }}
