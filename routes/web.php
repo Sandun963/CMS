@@ -184,6 +184,28 @@ Route::middleware('auth')->group(function () {
     */
 
     Route::middleware('role:sup_admin')->group(function () {
+        
+    // Location Management
+    Route::get('/locations', [LocationController::class, 'index'])
+        ->name('locations.index');
+
+    Route::post('/locations/floors', [LocationController::class, 'storeFloor'])
+        ->name('locations.floors.store');
+
+    Route::put('/locations/floors/{floor}', [LocationController::class, 'updateFloor'])
+        ->name('locations.floors.update');
+
+    Route::post('/locations/divisions', [LocationController::class, 'storeDivision'])
+        ->name('locations.divisions.store');
+
+    Route::put('/locations/divisions/{division}', [LocationController::class, 'updateDivision'])
+        ->name('locations.divisions.update');
+
+    Route::post('/locations/areas', [LocationController::class, 'storeArea'])
+        ->name('locations.areas.store');
+
+    Route::put('/locations/areas/{area}', [LocationController::class, 'updateArea'])
+        ->name('locations.areas.update');
 
         /*
         |--------------------------------------------------------------------------

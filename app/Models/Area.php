@@ -12,6 +12,10 @@ class Area extends Model
         'is_active',
     ];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
     public function division()
     {
         return $this->belongsTo(Division::class);

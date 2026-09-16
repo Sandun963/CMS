@@ -348,7 +348,16 @@
 
                     </li>
 
-
+                    <li class="nav-item">
+                        <a
+                            class="nav-link {{ request()->routeIs('locations.*') ? 'active' : '' }}"
+                            href="{{ route('locations.index') }}"
+                        >
+                            <i class="bi bi-geo-alt-fill me-2"></i>
+                            Manage Locations
+                        </a>
+                    </li>
+                    
                     <li class="nav-item">
 
                         <a
