@@ -820,81 +820,201 @@
             </div>
 
 
-        @else
+            @else
+
+                {{-- =================================================
+                    COMPLETED IT ADMINISTRATOR DECISION
+                ================================================== --}}
+
+                <div class="card stat-card mb-3 border-start border-4 border-success">
+
+                    <div
+                        class="card-header bg-white
+                            d-flex justify-content-between
+                            align-items-center"
+                    >
+
+                        <strong>
+                            IT Administrator Decision
+                        </strong>
 
 
-            <div class="card stat-card mb-3">
+                        <span class="badge bg-success">
 
-                <div class="card-header bg-white">
+                            <i class="bi bi-check-circle me-1"></i>
 
-                    <strong>
-                        IT Administrator Decision
-                    </strong>
+                            Decision Completed
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+
+                        {{-- Decision --}}
+                        <div class="mb-3">
+
+                            <strong class="d-block mb-1">
+                                Decision:
+                            </strong>
+
+
+                            <span
+                                class="badge
+                                {{
+                                    $escalation->admin_decision
+                                        === 'Outsource Recommended'
+                                        ? 'bg-warning text-dark'
+                                        : 'bg-secondary'
+                                }}"
+                            >
+
+                                {{ $escalation->admin_decision }}
+
+                            </span>
+
+                        </div>
+
+
+                        {{-- Remarks --}}
+                        <div class="mb-3">
+
+                            <strong class="d-block mb-1">
+                                IT Administrator Remarks:
+                            </strong>
+
+
+                            <div
+                                class="border rounded bg-light p-3"
+                                style="white-space: pre-wrap;"
+                            >{{ $escalation->admin_remarks ?: '-' }}</div>
+
+                        </div>
+
+
+                        {{-- Review Information --}}
+                        <div class="row g-3">
+
+
+                            <div class="col-md-6">
+
+                                <strong class="d-block mb-1">
+                                    Reviewed By:
+                                </strong>
+
+
+                                <span class="text-muted">
+
+                                    {{
+                                        $escalation->reviewedBy?->name
+                                        ?? '-'
+                                    }}
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <strong class="d-block mb-1">
+                                    Reviewed At:
+                                </strong>
+
+
+                                <span class="text-muted">
+
+                                    {{
+                                        $escalation->reviewed_at
+                                        ? $escalation
+                                            ->reviewed_at
+                                            ->format(
+                                                'd F Y - h:i A'
+                                            )
+                                        : '-'
+                                    }}
+
+                                </span>
+
+                            </div>
+
+
+                        </div>
+
+
+                        {{-- =================================================
+                            FORMAL REPORT
+                        ================================================== --}}
+
+                        @if(
+                            $escalation->status === 'Reviewed'
+                            && $escalation->admin_decision
+                            && $escalation->reviewed_at
+                        )
+
+                            <hr class="my-4">
+
+
+                            <div
+                                class="d-flex flex-column
+                                    flex-md-row
+                                    justify-content-between
+                                    align-items-md-center
+                                    gap-3"
+                            >
+
+                                <div>
+
+                                    <div class="fw-semibold">
+
+                                        <i class="bi bi-file-earmark-pdf me-1"></i>
+
+                                         Complaint Report 
+
+                                    </div>
+
+
+                                    <div class="text-muted small mt-1">
+
+                                        The final decision
+                                        has been submitted.
+
+                                        The complaint report is now
+                                        available for export.
+
+                                    </div>
+
+                                </div>
+
+
+                                <a
+                                    href="{{
+                                        route(
+                                            'escalations.formal-report.pdf',
+                                            $escalation
+                                        )
+                                    }}"
+                                    class="btn btn-danger"
+                                >
+
+                                    <i class="bi bi-file-earmark-pdf me-1"></i>
+
+                                    Export Report
+
+                                </a>
+
+                            </div>
+
+                        @endif
+
+
+                    </div>
 
                 </div>
 
-
-                <div class="card-body">
-
-
-                    <p>
-
-                        <strong>
-                            Decision:
-                        </strong>
-
-                        {{ $escalation->admin_decision }}
-
-                    </p>
-
-
-                    <p>
-
-                        <strong>
-                            Remarks:
-                        </strong>
-
-                        {{ $escalation->admin_remarks ?: '-' }}
-
-                    </p>
-
-
-                    <p>
-
-                        <strong>
-                            Reviewed By:
-                        </strong>
-
-                        {{ $escalation->reviewedBy?->name ?? '-' }}
-
-                    </p>
-
-
-                    <p class="mb-0">
-
-                        <strong>
-                            Reviewed At:
-                        </strong>
-
-                        {{
-                            $escalation->reviewed_at
-                            ? $escalation
-                                ->reviewed_at
-                                ->format(
-                                    'd F Y - h:i A'
-                                )
-                            : '-'
-                        }}
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-        @endif
+            @endif
 
 
     </div>

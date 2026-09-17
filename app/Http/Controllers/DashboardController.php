@@ -156,8 +156,7 @@ class DashboardController extends Controller
             'my_jobs' => (clone $jobs)->count(),
             'in_progress' => (clone $jobs)->where('status', 'In Progress')->count(),
             'completed' => (clone $jobs)->where('status', 'Done')->count(),
-            'overdue' => (clone $jobs)->where('status', '!=', 'Done')->whereDate('due_date', '<', now())->count(),
-        ];
+            'overdue' => (clone $jobs)->whereIn('status', ['Pending','In Progress',])->whereDate('due_date', '<', now())->count(),];
 
         $myJobs = $jobs->latest()->limit(10)->get();
 

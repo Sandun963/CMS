@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\BreakdownRequest;
 use App\Models\Escalation;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -160,34 +161,9 @@ class EscalationController extends Controller
             403
         );
 
-        $escalation->load([
-
-            // Request
-            'breakdownRequest.floor',
-            'breakdownRequest.division',
-            'breakdownRequest.areaLocation',
-            'breakdownRequest.category',
-            'breakdownRequest.requestedBy',
-            'breakdownRequest.attachments',
-
-            // Complete assignment chain
-            'breakdownRequest.assignments.assignedBy',
-            'breakdownRequest.assignments.assignOfficer',
-
-            'breakdownRequest.assignments.officerAssignments.technicalOfficer',
-            'breakdownRequest.assignments.officerAssignments.assignedBy',
-
-            // All technician reports
-            'breakdownRequest.assignments.officerAssignments.workReport.attachments',
-            'breakdownRequest.assignments.officerAssignments.workReport.confirmation.confirmedBy',
-
-            // Activity log
-            'breakdownRequest.activityLogs.user',
-
-            // Escalation
-            'forwardedBy',
-            'reviewedBy',
-        ]);
+        $this->loadCompleteEscalationData(
+            $escalation
+        );
 
         return view(
             'escalations.show',
@@ -234,7 +210,7 @@ class EscalationController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Map Admin Decision → Request Status
+        | Map Admin Decision -> Request Status
         |--------------------------------------------------------------------------
         */
 
@@ -281,6 +257,12 @@ class EscalationController extends Controller
                 null,
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Activity Log
+        |--------------------------------------------------------------------------
+        */
+
         ActivityLog::log(
             $breakdownRequest->id,
             $user->id,
@@ -288,11 +270,183 @@ class EscalationController extends Controller
             $data['admin_remarks']
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Return to same escalation
+        |--------------------------------------------------------------------------
+        |
+        | Important:
+        | We return to the escalation details page instead of the list.
+        | The user can immediately see the saved decision and the
+        | Formal PDF Report button.
+        |
+        */
+
         return redirect()
-            ->route('escalations.index')
+            ->route(
+                'escalations.show',
+                $escalation
+            )
             ->with(
                 'success',
-                'IT Administrator decision saved successfully.'
+                'IT Administrator decision saved successfully. The formal report is now available.'
             );
+    }
+
+
+    /**
+     * Generate the formal escalation report as PDF.
+     *
+     * The report can only be generated after the
+     * IT Administrator has submitted the final decision.
+     */
+    public function exportFormalReport(
+        Escalation $escalation
+    ) {
+        $user = Auth::user();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Authorization
+        |--------------------------------------------------------------------------
+        */
+
+        abort_unless(
+            $user->isItAdministrator(),
+            403
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Decision must be completed first
+        |--------------------------------------------------------------------------
+        */
+
+        abort_unless(
+            $escalation->status === 'Reviewed'
+            && !empty($escalation->admin_decision)
+            && !empty($escalation->reviewed_at),
+            403,
+            'The formal report is available only after the IT Administrator decision has been submitted.'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Load Complete Complaint / Escalation Data
+        |--------------------------------------------------------------------------
+        */
+
+        $this->loadCompleteEscalationData(
+            $escalation
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Generate PDF
+        |--------------------------------------------------------------------------
+        */
+
+        $pdf = Pdf::loadView(
+            'escalations.report-pdf',
+            compact('escalation')
+        )
+            ->setPaper(
+                'a4',
+                'portrait'
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Safe File Name
+        |--------------------------------------------------------------------------
+        */
+
+        $requestNumber =
+            $escalation
+                ->breakdownRequest
+                ->request_number
+                ?? 'request';
+
+        $safeRequestNumber =
+            str_replace(
+                ['/', '\\', ' '],
+                '-',
+                $requestNumber
+            );
+
+        return $pdf->download(
+            'Formal_Complaint_Report_' .
+            $safeRequestNumber .
+            '.pdf'
+        );
+    }
+
+
+    /**
+     * Load all information required by:
+     *
+     * - Escalated case details page
+     * - Formal PDF report
+     *
+     * Keeping this in one method prevents the HTML page
+     * and PDF report from loading different information.
+     */
+    private function loadCompleteEscalationData(
+        Escalation $escalation
+    ): void {
+        $escalation->load([
+
+            /*
+            |--------------------------------------------------------------------------
+            | Request
+            |--------------------------------------------------------------------------
+            */
+
+            'breakdownRequest.floor',
+            'breakdownRequest.division',
+            'breakdownRequest.areaLocation',
+            'breakdownRequest.category',
+            'breakdownRequest.requestedBy',
+            'breakdownRequest.attachments',
+
+            /*
+            |--------------------------------------------------------------------------
+            | Complete Assignment Chain
+            |--------------------------------------------------------------------------
+            */
+
+            'breakdownRequest.assignments.assignedBy',
+            'breakdownRequest.assignments.assignOfficer',
+
+            'breakdownRequest.assignments.officerAssignments.technicalOfficer',
+            'breakdownRequest.assignments.officerAssignments.assignedBy',
+
+            /*
+            |--------------------------------------------------------------------------
+            | Technician Reports + Confirmation
+            |--------------------------------------------------------------------------
+            */
+
+            'breakdownRequest.assignments.officerAssignments.workReport.attachments',
+
+            'breakdownRequest.assignments.officerAssignments.workReport.confirmation.confirmedBy',
+
+            /*
+            |--------------------------------------------------------------------------
+            | Activity Log
+            |--------------------------------------------------------------------------
+            */
+
+            'breakdownRequest.activityLogs.user',
+
+            /*
+            |--------------------------------------------------------------------------
+            | Escalation
+            |--------------------------------------------------------------------------
+            */
+
+            'forwardedBy',
+            'reviewedBy',
+        ]);
     }
 }

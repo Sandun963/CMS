@@ -12,6 +12,7 @@ use App\Http\Controllers\WorkReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EscalationController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\NotificationReadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -254,6 +255,17 @@ Route::middleware('auth')->group(function () {
             [CategoryController::class, 'update']
         )->name('categories.update');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Notification Read
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post(
+            '/notifications/read',
+            [NotificationReadController::class, 'markAsRead']
+        )->name('notifications.read');
+
     });
 
 
@@ -289,15 +301,44 @@ Route::middleware('auth')->group(function () {
             [EscalationController::class, 'index']
         )->name('escalations.index');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Escalated Cases
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/escalations',
+            [EscalationController::class, 'index']
+        )->name('escalations.index');
+
+
         Route::get(
             '/escalations/{escalation}',
             [EscalationController::class, 'show']
         )->name('escalations.show');
 
+
         Route::post(
             '/escalations/{escalation}/decision',
             [EscalationController::class, 'decide']
         )->name('escalations.decide');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Formal Escalation Report PDF
+        |--------------------------------------------------------------------------
+        |
+        | The controller additionally checks that the IT Administrator
+        | has completed the decision before allowing PDF generation.
+        |
+        */
+
+        Route::get(
+            '/escalations/{escalation}/formal-report/pdf',
+            [EscalationController::class, 'exportFormalReport']
+        )->name('escalations.formal-report.pdf');
 
     });
 

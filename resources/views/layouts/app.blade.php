@@ -710,14 +710,36 @@
                                     as $notification
                                 )
 
-                                    <a
-                                        href="{{ $notification['url'] }}"
-                                        class="dropdown-item
-                                               notification-item
-                                               px-3
-                                               py-3
-                                               border-bottom"
+                                    <form
+                                        method="POST"
+                                        action="{{ route('notifications.read') }}"
+                                        class="m-0"
                                     >
+
+                                        @csrf
+
+                                        <input
+                                            type="hidden"
+                                            name="notification_key"
+                                            value="{{ $notification['notification_key'] }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="redirect_url"
+                                            value="{{ $notification['url'] }}"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="dropdown-item
+                                                notification-item
+                                                px-3
+                                                py-3
+                                                border-bottom
+                                                text-start
+                                                w-100"
+                                        >
 
                                         <div
                                             class="d-flex
@@ -951,7 +973,9 @@
 
                                         </div>
 
-                                    </a>
+                                    </button>
+
+                                </form>
 
 
                                 @empty
