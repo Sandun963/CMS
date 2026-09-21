@@ -357,6 +357,10 @@ Route::middleware('auth')->group(function () {
             [EscalationController::class, 'index']
         )->name('escalations.index');
 
+        Route::get(
+            '/escalations-summary/pdf',
+            [EscalationController::class, 'exportSummaryPdf']
+        )->name('escalations.summary.pdf');
 
         Route::get(
             '/escalations/{escalation}',

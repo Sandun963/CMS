@@ -393,7 +393,7 @@ class EscalationController extends Controller
      */
     private function loadCompleteEscalationData(
         Escalation $escalation
-    ): void {
+        ): void {
         $escalation->load([
 
             /*
@@ -449,4 +449,99 @@ class EscalationController extends Controller
             'reviewedBy',
         ]);
     }
+    
+    /**
+     * Export a summary of all escalated cases as PDF.
+     */
+    public function exportSummaryPdf()
+    {
+        $user = Auth::user();
+
+        abort_unless(
+            $user->isItAdministrator(),
+            403
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Load Escalated Cases
+        |--------------------------------------------------------------------------
+        */
+
+        $escalations = Escalation::with([
+            'breakdownRequest.division',
+            'breakdownRequest.category',
+            'breakdownRequest.assignments.officerAssignments.workReport',
+        ])
+            ->latest('forwarded_at')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Prepare Summary Data
+        |--------------------------------------------------------------------------
+        */
+
+        $summaryRows = $escalations->map(function ($escalation) {
+
+            $breakdown = $escalation->breakdownRequest;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Find latest technician work report
+            |--------------------------------------------------------------------------
+            */
+
+            $latestWorkReport = $breakdown
+                ?->assignments
+                ->flatMap(function ($assignment) {
+                    return $assignment->officerAssignments;
+                })
+                ->map(function ($officerAssignment) {
+                    return $officerAssignment->workReport;
+                })
+                ->filter()
+                ->sortByDesc(function ($workReport) {
+                    return $workReport->reported_at
+                        ?? $workReport->created_at;
+                })
+                ->first();
+
+            return [
+                'request_number' =>
+                    $breakdown?->request_number ?? '-',
+
+                'division' =>
+                    $breakdown?->division?->name ?? '-',
+
+                'category' =>
+                    $breakdown?->category?->name ?? '-',
+
+                'problem_identified' =>
+                    $latestWorkReport?->problem_identified ?? '-',
+            ];
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Generate Portrait PDF
+        |--------------------------------------------------------------------------
+        */
+
+        $pdf = Pdf::loadView(
+            'escalations.summary-pdf',
+            compact('summaryRows')
+        )
+            ->setPaper(
+                'a4',
+                'portrait'
+            );
+
+        return $pdf->download(
+            'Escalated_Cases_Summary_' .
+            now()->format('Y-m-d') .
+            '.pdf'
+        );
+    }
+    
 }

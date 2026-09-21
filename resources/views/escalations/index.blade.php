@@ -4,9 +4,30 @@
 
 @section('content')
 
-<h4 class="mb-4">
-    Escalated Cases
-</h4>
+    <div
+        class="d-flex
+            justify-content-between
+            align-items-center
+            mb-4"
+    >
+
+        <h4 class="mb-0">
+            Escalated Cases
+        </h4>
+
+
+        <a
+            href="{{ route('escalations.summary.pdf') }}"
+            class="btn btn-danger"
+        >
+
+            <i class="bi bi-file-earmark-pdf me-1"></i>
+
+            Export Summary PDF
+
+        </a>
+
+    </div>
 
 
 <div class="card stat-card">

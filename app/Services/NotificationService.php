@@ -256,24 +256,27 @@ class NotificationService
 
         /*
         |--------------------------------------------------------------------------
-        | Use date-only comparison
+        | Calendar-date comparison
         |--------------------------------------------------------------------------
+        |
+        | Ignore the time completely.
+        | Example:
+        | Today:    21 Sep 2026
+        | Due date: 22 Sep 2026
+        | Result:   1 day -> Due Tomorrow
+        |
         */
 
-        $today = Carbon::today();
+        $today = Carbon::today()->startOfDay();
 
-        $dueDate =
-            $assignment
-                ->due_date
-                ->copy()
-                ->startOfDay();
+        $dueDate = Carbon::parse(
+            $assignment->due_date->format('Y-m-d')
+        )->startOfDay();
 
-
-        $days =
-            $today->diffInDays(
-                $dueDate,
-                false
-            );
+        $days = (int) $today->diffInDays(
+            $dueDate,
+            false
+        );
 
 
         /*
@@ -349,17 +352,19 @@ class NotificationService
 
             $priority = 3;
 
-        } else {
+            } else {
 
-            $title =
-                'Due Soon';
+                $title =
+                    'Due Soon';
 
-            $message =
-                $request->request_number .
-                ' is due in 2 days.';
+                $message =
+                    $request->request_number .
+                    ' is due in ' .
+                    $days .
+                    ' days.';
 
-            $priority = 4;
-        }
+                $priority = 4;
+            }
 
 
         /*
