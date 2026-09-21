@@ -78,7 +78,7 @@
         <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
 
-    <hr>
+    <!-- <hr>
     <div class="small text-muted">
     <strong>Demo accounts</strong> (password: <code>1234</code>)<br>
         IT Head: <code>ithead</code><br>
@@ -88,7 +88,7 @@
         Department User: <code>deptuser</code><br>
         HR Department User: <code>hruser</code><br>
         Username: superadmin
-    </div>
+    </div> -->
 </div>
 </body>
 </html>
