@@ -417,7 +417,7 @@ class BreakdownRequestController extends Controller
 
             'troubleshooter_contact' => [
                 'nullable',
-                'regex:/^0[0-9]{9}$/',
+                'regex:/^[0-9]{1,10}$/',
             ],
 
 

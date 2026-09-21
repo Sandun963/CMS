@@ -375,7 +375,7 @@ class EscalationController extends Controller
             );
 
         return $pdf->download(
-            'Formal_Complaint_Report_' .
+            'Complaint_Report_' .
             $safeRequestNumber .
             '.pdf'
         );

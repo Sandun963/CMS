@@ -264,20 +264,15 @@
                     name="troubleshooter_contact"
                     id="troubleshooterContact"
                     class="form-control"
-                    value="{{ old('troubleshooter_contact', '0') }}"
+                    value="{{ old('troubleshooter_contact') }}"
                     inputmode="numeric"
-                    minlength="10"
                     maxlength="10"
-                    pattern="0[0-9]{9}"
-                    title="Contact number must start with 0 and contain exactly 10 digits"
+                    pattern="[0-9]{1,10}"
+                    title="Contact number can contain up to 10 digits"
                     oninput="
-                        let digits = this.value.replace(/[^0-9]/g, '');
-
-                        if (!digits.startsWith('0')) {
-                            digits = '0' + digits;
-                        }
-
-                        this.value = digits.slice(0, 10);
+                        this.value = this.value
+                            .replace(/[^0-9]/g, '')
+                            .slice(0, 10);
                     "
                 >
 

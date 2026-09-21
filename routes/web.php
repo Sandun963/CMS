@@ -2,17 +2,18 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BreakdownRequestController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentConfirmationController;
+use App\Http\Controllers\EscalationController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\NotificationReadController;
 use App\Http\Controllers\OfficerAssignmentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkReportController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\EscalationController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\NotificationReadController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +21,10 @@ use App\Http\Controllers\NotificationReadController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', fn () => redirect()->route('login'));
+Route::get(
+    '/',
+    fn () => redirect()->route('login')
+);
 
 
 /*
@@ -29,14 +33,22 @@ Route::get('/', fn () => redirect()->route('login'));
 |--------------------------------------------------------------------------
 */
 
-Route::get('/login', [LoginController::class, 'showLoginForm'])
-    ->name('login');
+Route::get(
+    '/login',
+    [LoginController::class, 'showLoginForm']
+)->name('login');
 
-Route::post('/login', [LoginController::class, 'login'])
-    ->name('login.attempt');
 
-Route::post('/logout', [LoginController::class, 'logout'])
-    ->name('logout');
+Route::post(
+    '/login',
+    [LoginController::class, 'login']
+)->name('login.attempt');
+
+
+Route::post(
+    '/logout',
+    [LoginController::class, 'logout']
+)->name('logout');
 
 
 /*
@@ -49,14 +61,19 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Location Routes
+    | Location Lookup Routes
     |--------------------------------------------------------------------------
+    |
+    | Used by Floor -> Division -> Area dependent dropdowns.
+    | Available to authenticated users.
+    |
     */
 
     Route::get(
         '/locations/floors/{floor}/divisions',
         [LocationController::class, 'divisions']
     )->name('locations.divisions');
+
 
     Route::get(
         '/locations/divisions/{division}/areas',
@@ -70,8 +87,10 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
+    Route::get(
+        '/dashboard',
+        [DashboardController::class, 'index']
+    )->name('dashboard');
 
 
     /*
@@ -80,24 +99,42 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     |
     | All authenticated users can access the request list/details.
-    | What they can see is controlled inside BreakdownRequestController.
+    | Visibility is controlled inside BreakdownRequestController.
     |
     */
 
-    Route::get('/requests', [BreakdownRequestController::class, 'index'])
-        ->name('requests.index');
+    Route::get(
+        '/requests',
+        [BreakdownRequestController::class, 'index']
+    )->name('requests.index');
 
-    Route::get('/requests/{breakdownRequest}', [BreakdownRequestController::class, 'show'])
-        ->name('requests.show');
+
+    Route::get(
+        '/requests/{breakdownRequest}',
+        [BreakdownRequestController::class, 'show']
+    )->name('requests.show');
 
 
     /*
     |--------------------------------------------------------------------------
-    | Ministry User
+    | Notification Read
     |--------------------------------------------------------------------------
     |
-    | Ministry Users can create breakdown requests and confirm completed work.
+    | Technical Officer, Assign Officer and IT Administrator use this.
+    | NotificationReadController performs the role check.
     |
+    */
+
+    Route::post(
+        '/notifications/read',
+        [NotificationReadController::class, 'markAsRead']
+    )->name('notifications.read');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ministry / Department User
+    |--------------------------------------------------------------------------
     */
 
     Route::middleware('role:ministry_user')->group(function () {
@@ -106,6 +143,7 @@ Route::middleware('auth')->group(function () {
             '/requests-create',
             [BreakdownRequestController::class, 'create']
         )->name('requests.create');
+
 
         Route::post(
             '/requests-create',
@@ -125,9 +163,6 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     | Assign Officer
     |--------------------------------------------------------------------------
-    |
-    | Assign Officers assign breakdown requests to Technical Officers.
-    |
     */
 
     Route::middleware('role:assign_officer')->group(function () {
@@ -137,10 +172,12 @@ Route::middleware('auth')->group(function () {
             [OfficerAssignmentController::class, 'store']
         )->name('officer-assignments.store');
 
+
         Route::post(
             '/requests/{breakdownRequest}/forward-to-it-admin',
             [EscalationController::class, 'forward']
         )->name('escalations.forward');
+
     });
 
 
@@ -148,9 +185,6 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     | Technical Officer
     |--------------------------------------------------------------------------
-    |
-    | Technical Officers start assigned work and submit work reports.
-    |
     */
 
     Route::middleware('role:technical_officer')->group(function () {
@@ -159,6 +193,7 @@ Route::middleware('auth')->group(function () {
             '/officer-assignments/{officerAssignment}/start',
             [WorkReportController::class, 'startWork']
         )->name('work-reports.start');
+
 
         Route::post(
             '/officer-assignments/{officerAssignment}/report',
@@ -173,40 +208,62 @@ Route::middleware('auth')->group(function () {
     | Super Admin
     |--------------------------------------------------------------------------
     |
-    | Only Super Admin can manage system user accounts.
-    |
-    | Super Admin can:
-    | - View users
-    | - Create users
-    | - Edit users
-    | - Change roles
-    | - Activate/deactivate users
+    | Super Admin can manage:
+    | - Users
+    | - Categories
+    | - Locations
     |
     */
 
     Route::middleware('role:sup_admin')->group(function () {
-        
-    // Location Management
-    Route::get('/locations', [LocationController::class, 'index'])
-        ->name('locations.index');
 
-    Route::post('/locations/floors', [LocationController::class, 'storeFloor'])
-        ->name('locations.floors.store');
+        /*
+        |--------------------------------------------------------------------------
+        | Location Management
+        |--------------------------------------------------------------------------
+        */
 
-    Route::put('/locations/floors/{floor}', [LocationController::class, 'updateFloor'])
-        ->name('locations.floors.update');
+        Route::get(
+            '/locations',
+            [LocationController::class, 'index']
+        )->name('locations.index');
 
-    Route::post('/locations/divisions', [LocationController::class, 'storeDivision'])
-        ->name('locations.divisions.store');
 
-    Route::put('/locations/divisions/{division}', [LocationController::class, 'updateDivision'])
-        ->name('locations.divisions.update');
+        Route::post(
+            '/locations/floors',
+            [LocationController::class, 'storeFloor']
+        )->name('locations.floors.store');
 
-    Route::post('/locations/areas', [LocationController::class, 'storeArea'])
-        ->name('locations.areas.store');
 
-    Route::put('/locations/areas/{area}', [LocationController::class, 'updateArea'])
-        ->name('locations.areas.update');
+        Route::put(
+            '/locations/floors/{floor}',
+            [LocationController::class, 'updateFloor']
+        )->name('locations.floors.update');
+
+
+        Route::post(
+            '/locations/divisions',
+            [LocationController::class, 'storeDivision']
+        )->name('locations.divisions.store');
+
+
+        Route::put(
+            '/locations/divisions/{division}',
+            [LocationController::class, 'updateDivision']
+        )->name('locations.divisions.update');
+
+
+        Route::post(
+            '/locations/areas',
+            [LocationController::class, 'storeArea']
+        )->name('locations.areas.store');
+
+
+        Route::put(
+            '/locations/areas/{area}',
+            [LocationController::class, 'updateArea']
+        )->name('locations.areas.update');
+
 
         /*
         |--------------------------------------------------------------------------
@@ -217,7 +274,9 @@ Route::middleware('auth')->group(function () {
         Route::resource(
             'users',
             UserController::class
-        )->except(['show']);
+        )->except([
+            'show',
+        ]);
 
 
         /*
@@ -255,17 +314,6 @@ Route::middleware('auth')->group(function () {
             [CategoryController::class, 'update']
         )->name('categories.update');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Notification Read
-        |--------------------------------------------------------------------------
-        */
-
-        Route::post(
-            '/notifications/read',
-            [NotificationReadController::class, 'markAsRead']
-        )->name('notifications.read');
-
     });
 
 
@@ -274,32 +322,29 @@ Route::middleware('auth')->group(function () {
     | Administrator
     |--------------------------------------------------------------------------
     |
-    | IT Head does NOT manage user accounts.
-    |
-    | IT Head can:
-    | - View requests
-    | - View reports
-    | - Filter reports
-    | - Export reports
+    | Includes the IT Administrator.
     |
     */
 
     Route::middleware('role:administrator')->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Reports
+        |--------------------------------------------------------------------------
+        */
 
         Route::get(
             '/reports',
             [ReportController::class, 'index']
         )->name('reports.index');
 
+
         Route::get(
             '/reports/export/pdf',
             [ReportController::class, 'exportPdf']
         )->name('reports.export.pdf');
 
-        Route::get(
-            '/escalations',
-            [EscalationController::class, 'index']
-        )->name('escalations.index');
 
         /*
         |--------------------------------------------------------------------------
@@ -330,7 +375,7 @@ Route::middleware('auth')->group(function () {
         | Formal Escalation Report PDF
         |--------------------------------------------------------------------------
         |
-        | The controller additionally checks that the IT Administrator
+        | EscalationController also verifies that the IT Administrator
         | has completed the decision before allowing PDF generation.
         |
         */
