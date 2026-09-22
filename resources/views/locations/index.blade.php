@@ -526,4 +526,209 @@
     </div>
 </div>
 
-@endsection
+
+    {{-- =========================================================
+        ADD AREA - FLOOR -> DIVISION DEPENDENT DROPDOWN
+    ========================================================= --}}
+
+    <script>
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        function () {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Elements
+            |--------------------------------------------------------------------------
+            */
+
+            const floorSelect =
+                document.getElementById('areaFloor');
+
+            const divisionSelect =
+                document.getElementById('areaDivision');
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Safety Check
+            |--------------------------------------------------------------------------
+            */
+
+            if (!floorSelect || !divisionSelect) {
+                return;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Load Divisions For Selected Floor
+            |--------------------------------------------------------------------------
+            */
+
+            async function loadDivisions(floorId) {
+
+                /*
+                |--------------------------------------------------------------------------
+                | No Floor Selected
+                |--------------------------------------------------------------------------
+                */
+
+                if (!floorId) {
+
+                    divisionSelect.disabled = true;
+
+                    divisionSelect.innerHTML =
+                        '<option value="">Select Floor First</option>';
+
+                    return;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Show Loading
+                |--------------------------------------------------------------------------
+                */
+
+                divisionSelect.disabled = true;
+
+                divisionSelect.innerHTML =
+                    '<option value="">Loading divisions...</option>';
+
+
+                try {
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Request Divisions From Laravel
+                    |--------------------------------------------------------------------------
+                    */
+
+                    const response = await fetch(
+                        `/locations/floors/${floorId}/divisions`,
+                        {
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        }
+                    );
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            'Unable to load divisions.'
+                        );
+
+                    }
+
+
+                    const divisions =
+                        await response.json();
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Reset Dropdown
+                    |--------------------------------------------------------------------------
+                    */
+
+                    divisionSelect.innerHTML =
+                        '<option value="">Select Division</option>';
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Add Divisions
+                    |--------------------------------------------------------------------------
+                    */
+
+                    divisions.forEach(
+                        function (division) {
+
+                            const option =
+                                document.createElement('option');
+
+                            option.value =
+                                division.id;
+
+                            option.textContent =
+                                division.name;
+
+                            divisionSelect.appendChild(
+                                option
+                            );
+
+                        }
+                    );
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Enable Dropdown
+                    |--------------------------------------------------------------------------
+                    */
+
+                    divisionSelect.disabled = false;
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | No Divisions
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (divisions.length === 0) {
+
+                        divisionSelect.innerHTML =
+                            '<option value="">No divisions available</option>';
+
+                        divisionSelect.disabled = true;
+
+                    }
+
+
+                } catch (error) {
+
+                    console.error(
+                        'Error loading divisions:',
+                        error
+                    );
+
+
+                    divisionSelect.innerHTML =
+                        '<option value="">Unable to load divisions</option>';
+
+                    divisionSelect.disabled = true;
+
+                }
+
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Floor Changed
+            |--------------------------------------------------------------------------
+            */
+
+            floorSelect.addEventListener(
+                'change',
+                function () {
+
+                    loadDivisions(
+                        this.value
+                    );
+
+                }
+            );
+
+        }
+    );
+
+    </script>
+
+
+    @endsection

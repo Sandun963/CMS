@@ -88,9 +88,29 @@ class BreakdownRequestController extends Controller
 
         } elseif ($user->isTechnicalOfficer()) {
 
-            $query->where(
-                'assigned_to',
-                $user->id
+            /*
+            |--------------------------------------------------------------------------
+            | Technical Officer Visibility
+            |--------------------------------------------------------------------------
+            |
+            | A Technical Officer must be able to see every request that has ever
+            | been assigned to them.
+            |
+            | This is important for completed/closed requests because assigned_to
+            | may no longer represent the historical technician.
+            |
+            */
+
+            $query->whereHas(
+                'assignments.officerAssignments',
+                function ($officerQuery) use ($user) {
+
+                    $officerQuery->where(
+                        'technical_officer_id',
+                        $user->id
+                    );
+
+                }
             );
 
         } elseif ($user->isAssignOfficer()) {
@@ -406,6 +426,7 @@ class BreakdownRequestController extends Controller
                 'required',
                 'string',
                 'max:255',
+                'regex:/^[A-Za-z ]+$/',
             ],
 
 
@@ -413,6 +434,7 @@ class BreakdownRequestController extends Controller
                 'nullable',
                 'string',
                 'max:255',
+                'regex:/^[A-Za-z ]+$/',
             ],
 
             'troubleshooter_contact' => [
@@ -846,21 +868,42 @@ class BreakdownRequestController extends Controller
             return;
         }
 
-
         /*
         |--------------------------------------------------------------------------
         | Technical Officer
         |--------------------------------------------------------------------------
+        |
+        | Allow the Technical Officer to view a request if the request was ever
+        | assigned to them.
+        |
+        | This keeps completed and closed jobs available as historical records.
+        |
         */
 
-        if (
-            $user->isTechnicalOfficer()
-            &&
-            $breakdownRequest->assigned_to ===
-                $user->id
-        ) {
+        if ($user->isTechnicalOfficer()) {
 
-            return;
+            $wasAssignedToTechnician =
+                $breakdownRequest
+                    ->assignments()
+                    ->whereHas(
+                        'officerAssignments',
+                        function ($officerQuery) use ($user) {
+
+                            $officerQuery->where(
+                                'technical_officer_id',
+                                $user->id
+                            );
+
+                        }
+                    )
+                    ->exists();
+
+
+            if ($wasAssignedToTechnician) {
+
+                return;
+
+            }
         }
 
 

@@ -41,7 +41,38 @@
                     <td><a href="{{ route('requests.show', $r) }}">{{ $r->request_number }}</a></td>
                     <td>{{ $r->title }}</td>
                     <td><span class="badge {{ $r->statusBadgeClass() }}">{{ $r->status }}</span></td>
-                    <td>{{ $r->assignedTo->name ?? '-' }}</td>
+                    <td>
+                        @php
+                            /*
+                            |--------------------------------------------------------------------------
+                            | Technician to Display
+                            |--------------------------------------------------------------------------
+                            |
+                            | 1. First use the current assigned technician.
+                            | 2. If the request is already Closed and assigned_to is empty,
+                            |    get the latest technician from the assignment history.
+                            |
+                            */
+
+                            $displayTechnician = $r->assignedTo;
+
+                            if (!$displayTechnician) {
+
+                                $latestHistoricalOfficerAssignment =
+                                    $r->assignments
+                                        ->flatMap(function ($assignment) {
+                                            return $assignment->officerAssignments;
+                                        })
+                                        ->sortByDesc('id')
+                                        ->first();
+
+                                $displayTechnician =
+                                    $latestHistoricalOfficerAssignment?->technicalOfficer;
+                            }
+                        @endphp
+
+                        {{ $displayTechnician?->name ?? '-' }}
+                    </td>
                     <td class="small text-muted">{{ $r->created_at->format('d/m/Y H:i') }}</td>
                 </tr>
                 @empty

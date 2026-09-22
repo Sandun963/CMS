@@ -76,7 +76,14 @@ class DashboardController extends Controller
             'reopened' => BreakdownRequest::where('status', 'Reopened')->count(),
         ];
 
-        $recent = BreakdownRequest::with(['department', 'assignedTo'])
+        $recent = BreakdownRequest::with([
+            'department',
+            'assignedTo',
+
+            // Keep historical technician assignments available
+            // even after the request has been closed.
+            'assignments.officerAssignments.technicalOfficer',
+        ])
             ->latest()
             ->limit(8)
             ->get();

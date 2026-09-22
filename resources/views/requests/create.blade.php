@@ -208,7 +208,8 @@
                 class="form-control"
                 value="{{ old('machine_owner_name') }}"
                 placeholder="Enter machine owner's name"
-                oninput="this.value = this.value.toUpperCase()"
+                pattern="[A-Za-z ]+"
+                oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '').toUpperCase()"
                 required
             >
 
@@ -239,7 +240,8 @@
                     class="form-control"
                     value="{{ old('troubleshooter_name') }}"
                     placeholder="Enter troubleshooter's name"
-                    oninput="this.value = this.value.toUpperCase()"
+                    pattern="[A-Za-z ]*"
+                    oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '').toUpperCase()"
                 >
 
             </div>

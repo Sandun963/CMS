@@ -241,10 +241,6 @@
                     </th>
 
                     <th>
-                        Assigned To
-                    </th>
-
-                    <th>
                         Date
                     </th>
 
@@ -289,17 +285,6 @@
                             >
                                 {{ $r->status }}
                             </span>
-
-                        </td>
-
-
-                        {{-- Assigned To --}}
-                        <td>
-
-                            {{
-                                $r->assignedTo?->name
-                                ?? '-'
-                            }}
 
                         </td>
 

@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -80,29 +81,38 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            'regex:/^[\pL\s.\'-]+$/u',
+        ],
 
-            'email' => [
-                'required',
-                'email',
-                'unique:users,email',
-            ],
+        'email' => [
+            'required',
+            'email',
+            'max:255',
+            'unique:users,email',
+        ],
 
-            'username' => [
-                'required',
-                'string',
-                'unique:users,username',
-            ],
+        'username' => [
+            'required',
+            'string',
+            'min:3',
+            'max:50',
+            'regex:/^[A-Za-z0-9._-]+$/',
+            'unique:users,username',
+        ],
 
-            'password' => [
-                'required',
-                'string',
-                'min:6',
-            ],
+        'password' => [
+            'required',
+            'string',
+            'min:8',
+            'regex:/[a-z]/',
+            'regex:/[A-Z]/',
+            'regex:/[0-9]/',
+            'regex:/[@$!%*#?&]/',
+        ],
 
             'role_id' => [
                 'required',
@@ -127,12 +137,14 @@ class UserController extends Controller
 
             'phone' => [
                 'nullable',
-                'string',
+                'regex:/^[0-9]{1,10}$/',
             ],
 
             'specialty' => [
                 'nullable',
                 'string',
+                'max:100',
+                'regex:/^[\pL\pN\s.,()\/&+-]+$/u',
             ],
         ]);
 
@@ -294,23 +306,28 @@ class UserController extends Controller
         User $user
     ) {
         $data = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            'regex:/^[\pL\s.\'-]+$/u',
+        ],
 
-            'email' => [
-                'required',
-                'email',
-                'unique:users,email,' . $user->id,
-            ],
+        'email' => [
+            'required',
+            'email',
+            'max:255',
+            'unique:users,email,' . $user->id,
+        ],
 
-            'username' => [
-                'required',
-                'string',
-                'unique:users,username,' . $user->id,
-            ],
+        'username' => [
+            'required',
+            'string',
+            'min:3',
+            'max:50',
+            'regex:/^[A-Za-z0-9._-]+$/',
+            'unique:users,username,' . $user->id,
+        ],
 
             'role_id' => [
                 'required',
@@ -335,12 +352,14 @@ class UserController extends Controller
 
             'phone' => [
                 'nullable',
-                'string',
+                'regex:/^[0-9]{1,10}$/',
             ],
 
             'specialty' => [
                 'nullable',
                 'string',
+                'max:100',
+                'regex:/^[\pL\pN\s.,()\/&+-]+$/u',
             ],
 
             'is_active' => [
@@ -351,7 +370,11 @@ class UserController extends Controller
             'password' => [
                 'nullable',
                 'string',
-                'min:6',
+                'min:8',
+                'regex:/[a-z]/',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[@$!%*#?&]/',
             ],
         ]);
 

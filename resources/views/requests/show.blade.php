@@ -563,6 +563,10 @@
 
                                     Problem Identified
 
+                                    <span class="text-danger">
+                                        *
+                                    </span>
+
                                 </label>
 
 
@@ -570,6 +574,7 @@
                                     name="problem_identified"
                                     class="form-control"
                                     rows="2"
+                                    required
                                 ></textarea>
 
                             </div>
