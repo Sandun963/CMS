@@ -13,6 +13,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class BreakdownRequestController extends Controller
 {
@@ -981,57 +982,120 @@ class BreakdownRequestController extends Controller
     {
         $year = now()->format('y');
 
-        $prefix = "CMS/{$year}/";
 
         /*
         |--------------------------------------------------------------------------
-        | Find Highest Number For Current Year
+        | Generate Request Number Safely
         |--------------------------------------------------------------------------
+        |
+        | One counter row is maintained for each year.
+        |
+        | lockForUpdate() prevents two concurrent submissions from obtaining
+        | the same sequence number.
+        |
         */
 
-        $lastRequest = BreakdownRequest::where(
-                'request_number',
-                'like',
-                $prefix . '%'
-            )
-            ->orderByRaw(
-                'CAST(SUBSTRING_INDEX(request_number, "/", -1) AS UNSIGNED) DESC'
-            )
-            ->first();
+        return DB::transaction(function () use ($year) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Make Sure Counter Exists
+            |--------------------------------------------------------------------------
+            */
+
+            DB::table('request_number_counters')
+                ->insertOrIgnore([
+                    'year' => $year,
+                    'last_number' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Determine Next Sequence
-        |--------------------------------------------------------------------------
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | Lock Counter Row
+            |--------------------------------------------------------------------------
+            |
+            | If another request is currently generating a number for this year,
+            | MySQL waits here until that transaction finishes.
+            |
+            */
 
-        $nextNumber = 1;
+            $counter = DB::table('request_number_counters')
+                ->where('year', $year)
+                ->lockForUpdate()
+                ->first();
 
-        if ($lastRequest) {
 
-            $parts = explode(
-                '/',
-                $lastRequest->request_number
+            /*
+            |--------------------------------------------------------------------------
+            | Synchronize With Existing Requests
+            |--------------------------------------------------------------------------
+            |
+            | This is important because the CMS already contains request numbers
+            | that were created before this counter table existed.
+            |
+            */
+
+            $prefix = "CMS/{$year}/";
+
+            $highestExistingNumber = BreakdownRequest::where(
+                    'request_number',
+                    'like',
+                    $prefix . '%'
+                )
+                ->selectRaw(
+                    'MAX(CAST(SUBSTRING_INDEX(request_number, "/", -1) AS UNSIGNED)) as max_number'
+                )
+                ->value('max_number');
+
+            $highestExistingNumber =
+                (int) ($highestExistingNumber ?? 0);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Determine Next Number
+            |--------------------------------------------------------------------------
+            */
+
+            $currentCounter =
+                (int) $counter->last_number;
+
+            $nextNumber =
+                max(
+                    $currentCounter,
+                    $highestExistingNumber
+                ) + 1;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update Counter
+            |--------------------------------------------------------------------------
+            */
+
+            DB::table('request_number_counters')
+                ->where('year', $year)
+                ->update([
+                    'last_number' => $nextNumber,
+                    'updated_at' => now(),
+                ]);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Return Request Number
+            |--------------------------------------------------------------------------
+            */
+
+            return sprintf(
+                'CMS/%s/%04d',
+                $year,
+                $nextNumber
             );
-
-            $lastNumber = (int) end($parts);
-
-            $nextNumber = $lastNumber + 1;
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Generate Final Token
-        |--------------------------------------------------------------------------
-        */
-
-        return sprintf(
-            'CMS/%s/%04d',
-            $year,
-            $nextNumber
-        );
+        });
     }
 
 
