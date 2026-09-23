@@ -45,16 +45,17 @@
                     Full Name *
                 </label>
 
-                <input
-                    type="text"
-                    name="name"
-                    class="form-control @error('name') is-invalid @enderror"
-                    value="{{ old('name', $user->name) }}"
-                    maxlength="255"
-                    pattern="[A-Za-zÀ-ÿ\s.'-]+"
-                    title="Name can contain letters, spaces, dots, apostrophes and hyphens only."
-                    required
-                >
+                    <input
+                        type="text"
+                        name="name"
+                        class="form-control @error('name') is-invalid @enderror"
+                        value="{{ old('name', $user->name) }}"
+                        maxlength="255"
+                        pattern="[A-Za-z ]+"
+                        title="Full Name can contain letters and spaces only."
+                        oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '')"
+                        required
+                    >
 
                 @error('name')
                     <div class="invalid-feedback">
