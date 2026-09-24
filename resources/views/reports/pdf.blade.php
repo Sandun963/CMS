@@ -89,7 +89,7 @@
 <div class="header">
 
     <h2>
-        IT Complain Management System
+        IT Issue Resolution System
     </h2>
 
     <p>

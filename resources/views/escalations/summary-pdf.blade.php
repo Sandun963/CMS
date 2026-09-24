@@ -251,7 +251,7 @@
     <div class="footer">
 
         Escalated Cases Summary Report |
-        Complain Management System
+        IT Issue Resolution System
 
     </div>
 
