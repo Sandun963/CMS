@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>
-        @yield('title', 'Dashboard') | IT Breakdown Management System
+        @yield('title', 'Dashboard') | IT Issue Resolution System
     </title>
 
     <link

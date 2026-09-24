@@ -1,6 +1,6 @@
-# IT Breakdown Management System
+# IT Issue Resolution System System
 
-A Laravel-based complaint/breakdown management system for an IT department, built around the 5-step workflow:
+A Laravel-based IT Issue Resolution System for an IT department, built around the 5-step workflow:
 
 **Submit (Ministry User) → Review & Assign (IT Head) → Assign Technical Officer (Assign Officer) → Resolve (Technical Officer) → Verify & Close (Ministry User)**
 
@@ -25,7 +25,7 @@ php artisan key:generate
 
 # 3. Database — SQLite is the default (already configured, database/database.sqlite exists as an empty file)
 #    If you'd rather use MySQL (matches the architecture diagram's tech stack):
-#      - create the database: mysql -u root -p -e "CREATE DATABASE it_breakdown_system"
+#      - create the database: mysql -u root -p -e "CREATE DATABASE IT Issue Resolution System"
 #      - in .env, comment out DB_CONNECTION=sqlite and uncomment the DB_CONNECTION=mysql block, fill in credentials
 
 # 4. Run migrations + seed demo data (roles, departments, categories, demo users)
