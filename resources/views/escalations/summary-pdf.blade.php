@@ -151,7 +151,7 @@
 
         <img
             src="{{ public_path('images/escalation-summary-header.png') }}"
-            alt="Chief Secretary Office ICT Unit"
+            alt="Chief Secretary's Office ICT Unit"
         >
 
     </div>

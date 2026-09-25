@@ -50,9 +50,9 @@
 
     <!-- <h3 class="login-department mt-3">IT Department</h3> -->
 
-    <p class="login-system-name">
+    <!-- <p class="login-system-name">
         IT Issue Resolution System
-    </p>
+    </p> -->
 </div>
 
     @if($errors->any())

@@ -221,8 +221,68 @@
             justify-content: center;
             background: #f4f6f9;
         }
+
+        /* =========================================================
+        TOP NAVBAR - FIXIT LOGO / DATE / TIME
+        ========================================================= */
+
+        .navbar-brand-area {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            min-width: 0;
+        }
+
+        .navbar-fixit-logo {
+            width: 115px;
+            height: 48px;
+            object-fit: contain;
+            object-position: center;
+            display: block;
+            margin-right: 28px;
+        }
+
+        .navbar-datetime {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: #6c757d;
+            font-size: 1rem;
+            white-space: nowrap;
+        }
+
+        .navbar-date-divider {
+            margin-left: 12px;
+            margin-right: 12px;
+            color: #6c757d;
+        }
+
+        /* Responsive navbar */
+        @media (max-width: 900px) {
+
+            .navbar-fixit-logo {
+                width: 90px;
+                height: 40px;
+                margin-right: 15px;
+            }
+
+            .navbar-datetime {
+                font-size: 0.9rem;
+            }
+
+            .navbar-date-divider {
+                margin-left: 7px;
+                margin-right: 7px;
+            }
+        }
     </style>
 </head>
+
+
+
+
+
+
 
 <body>
 
@@ -576,17 +636,31 @@
             class="navbar navbar-top px-4 py-2 d-flex justify-content-between"
         >
 
-            {{-- Date / Time --}}
+        {{-- ====================================================== --}}
+        {{-- FIXIT LOGO / DATE / TIME --}}
+        {{-- ====================================================== --}}
 
-            <div class="fw-semibold text-muted">
+        <div class="navbar-brand-area">
+
+            {{-- FixIT Logo --}}
+            <img
+                src="{{ asset('images/fixit-logo.png') }}"
+                alt="FixIT"
+                class="navbar-fixit-logo"
+            >
+
+            {{-- Date / Time --}}
+            <div class="navbar-datetime">
 
                 <span id="navbar-date"></span>
 
-                <span class="mx-2">|</span>
+                <span class="navbar-date-divider">|</span>
 
                 <span id="navbar-time"></span>
 
             </div>
+
+        </div>
 
 
             {{-- Right side --}}
