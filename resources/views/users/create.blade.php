@@ -151,6 +151,7 @@
 
                 <select
                     name="role_id"
+                    id="role_id"
                     class="form-select @error('role_id') is-invalid @enderror"
                     required
                 >
@@ -244,7 +245,7 @@
             <div class="col-md-6 mb-3">
 
                 <label class="form-label small fw-semibold">
-                    Floor
+                    Floor<span id="floor_required_mark"></span>
                 </label>
 
                 <select
@@ -383,18 +384,62 @@
 </div>
 
 
-<script>
+    <script>
 
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
 
-    const floorSelect =
-        document.getElementById('floor_id');
+        const roleSelect =
+            document.getElementById('role_id');
 
-    const divisionSelect =
-        document.getElementById('division_id');
+        const floorSelect =
+            document.getElementById('floor_id');
 
-    const oldDivisionId =
-        @json(old('division_id'));
+        const floorRequiredMark =
+            document.getElementById('floor_required_mark');
+
+        const divisionSelect =
+            document.getElementById('division_id');
+
+        const ministryUserRoleId =
+            @json(
+                optional(
+                    $roles->firstWhere(
+                        'code',
+                        \App\Models\Role::MINISTRY_USER
+                    )
+                )->id
+            );
+
+        const oldDivisionId =
+            @json(old('division_id'));
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Floor Requirement for Ministry User
+        |--------------------------------------------------------------------------
+        */
+
+        function updateFloorRequirement() {
+
+            const isMinistryUser =
+                String(roleSelect.value) ===
+                String(ministryUserRoleId);
+
+            floorSelect.required =
+                isMinistryUser;
+
+            floorRequiredMark.textContent =
+                isMinistryUser ? ' *' : '';
+        }
+
+
+        roleSelect.addEventListener(
+            'change',
+            updateFloorRequirement
+        );
+
+        updateFloorRequirement();
 
 
     /*

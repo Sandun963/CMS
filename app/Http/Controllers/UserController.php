@@ -150,6 +150,32 @@ class UserController extends Controller
             ],
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Require Floor for Ministry / Department Users
+        |--------------------------------------------------------------------------
+        */
+
+        $ministryUserRole = Role::where(
+            'code',
+            Role::MINISTRY_USER
+        )->first();
+
+        if (
+            $ministryUserRole
+            &&
+            (int) $data['role_id'] === (int) $ministryUserRole->id
+            &&
+            empty($data['floor_id'])
+        ) {
+            return back()
+                ->withErrors([
+                    'floor_id' =>
+                        'Floor is required for Ministry Users.',
+                ])
+                ->withInput();
+        }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -392,6 +418,26 @@ class UserController extends Controller
                 'regex:/[@$!%*#?&]/',
             ],
         ]);
+
+        $ministryUserRole = Role::where(
+            'code',
+            Role::MINISTRY_USER
+        )->first();
+
+        if (
+            $ministryUserRole
+            &&
+            (int) $data['role_id'] === (int) $ministryUserRole->id
+            &&
+            empty($data['floor_id'])
+        ) {
+            return back()
+                ->withErrors([
+                    'floor_id' =>
+                        'Floor is required for Ministry Users.',
+                ])
+                ->withInput();
+        }
 
 
         /*

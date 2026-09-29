@@ -315,6 +315,9 @@ class BreakdownRequestController extends Controller
      */
     public function create()
     {
+        $user = Auth::user();
+
+
         /*
         |--------------------------------------------------------------------------
         | Active Categories
@@ -333,21 +336,55 @@ class BreakdownRequestController extends Controller
         |--------------------------------------------------------------------------
         | Floors
         |--------------------------------------------------------------------------
+        |
+        | Ministry Users must use the floor assigned to their user account.
+        | Other roles keep the existing list of active floors.
+        |
         */
 
-        $floors = Floor::where(
-                'is_active',
-                true
-            )
-            ->orderBy('id')
-            ->get();
+        if ($user->isMinistryUser()) {
+
+            if (! $user->floor_id) {
+                abort(
+                    403,
+                    'No floor has been assigned to your account. Please contact the System Administrator.'
+                );
+            }
+
+            $floors = Floor::where(
+                    'id',
+                    $user->floor_id
+                )
+                ->where(
+                    'is_active',
+                    true
+                )
+                ->get();
+
+            if ($floors->isEmpty()) {
+                abort(
+                    403,
+                    'The floor assigned to your account is unavailable. Please contact the System Administrator.'
+                );
+            }
+
+        } else {
+
+            $floors = Floor::where(
+                    'is_active',
+                    true
+                )
+                ->orderBy('id')
+                ->get();
+        }
 
 
         return view(
             'requests.create',
             compact(
                 'categories',
-                'floors'
+                'floors',
+                'user'
             )
         );
     }
@@ -468,7 +505,30 @@ class BreakdownRequestController extends Controller
 
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Force Ministry User's Assigned Floor
+        |--------------------------------------------------------------------------
+        |
+        | Ministry Users are not allowed to choose or modify their floor when
+        | submitting a breakdown request. The floor stored against their user
+        | account is always used.
+        |
+        */
 
+        if ($user->isMinistryUser()) {
+
+            if (! $user->floor_id) {
+                return back()
+                    ->withErrors([
+                        'floor_id' =>
+                            'No floor has been assigned to your account. Please contact the System Administrator.',
+                    ])
+                    ->withInput();
+            }
+
+            $data['floor_id'] = $user->floor_id;
+        }
         /*
         |--------------------------------------------------------------------------
         | Get Floor

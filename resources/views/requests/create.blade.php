@@ -43,29 +43,58 @@
                     <span class="text-danger">*</span>
                 </label>
 
-                <select
-                    name="floor_id"
-                    id="floorSelect"
-                    class="form-select"
-                    required
-                >
 
-                    <option value="">
-                        Select Floor
-                    </option>
+                @if(auth()->user()->isMinistryUser())
 
-                    @foreach($floors as $floor)
+                    {{-- 
+                        Ministry User:
+                        Floor is automatically taken from the user's account.
+                        Show it as locked/read-only.
+                    --}}
 
-                        <option
-                            value="{{ $floor->id }}"
-                            @selected(old('floor_id') == $floor->id)
-                        >
-                            {{ $floor->name }}
+                    <select
+                        class="form-select"
+                        disabled
+                    >
+                        <option selected>
+                            {{ $floors->first()?->name ?? 'No Floor Assigned' }}
+                        </option>
+                    </select>
+
+                    <input
+                        type="hidden"
+                        name="floor_id"
+                        id="floorSelect"
+                        value="{{ auth()->user()->floor_id }}"
+                    >
+
+                @else
+
+                    <select
+                        name="floor_id"
+                        id="floorSelect"
+                        class="form-select"
+                        required
+                    >
+
+                        <option value="">
+                            Select Floor
                         </option>
 
-                    @endforeach
+                        @foreach($floors as $floor)
 
-                </select>
+                            <option
+                                value="{{ $floor->id }}"
+                                @selected(old('floor_id') == $floor->id)
+                            >
+                                {{ $floor->name }}
+                            </option>
+
+                        @endforeach
+
+                    </select>
+
+                @endif
 
             </div>
 
