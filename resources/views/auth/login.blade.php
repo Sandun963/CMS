@@ -69,7 +69,25 @@
         </div>
         <div class="mb-3">
             <label class="form-label small fw-semibold">Password</label>
-            <input type="password" name="password" class="form-control" required>
+
+            <div class="input-group">
+                <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    class="form-control"
+                    required
+                >
+
+                <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    id="togglePassword"
+                    aria-label="Show password"
+                >
+                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                </button>
+            </div>
         </div>
         <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" name="remember" id="remember">
@@ -78,5 +96,26 @@
         <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
 </div>
+
+<script>
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+    togglePassword.addEventListener('click', function () {
+
+        const isHidden = passwordInput.type === 'password';
+
+        passwordInput.type = isHidden ? 'text' : 'password';
+
+        togglePasswordIcon.classList.toggle('bi-eye', !isHidden);
+        togglePasswordIcon.classList.toggle('bi-eye-slash', isHidden);
+
+        this.setAttribute(
+            'aria-label',
+            isHidden ? 'Hide password' : 'Show password'
+        );
+    });
+</script>
 </body>
 </html>

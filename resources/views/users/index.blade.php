@@ -23,7 +23,17 @@
 <div class="card stat-card">
     <div class="table-responsive">
         <table class="table mb-0 align-middle">
-            <thead><tr><th>Name</th><th>Role</th><th>Floor</th><th>Division</th><th>Status</th><th></th></tr></thead>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Floor</th>
+                <th>Division</th>
+                <th>Created By</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+            </thead>
             <tbody>
                 @forelse($users as $u)
                 <tr>
@@ -31,9 +41,19 @@
                     <td><span class="badge bg-light text-dark border">{{ $u->role->name }}</span></td>
                     <td>{{ $u->floor?->name ?? '-' }}</td>
                     <td>{{ $u->division?->name ?? '-' }}</td>
+
                     <td>
-                        @if($u->is_active)<span class="badge bg-success">Active</span>@else<span class="badge bg-secondary">Inactive</span>@endif
+                        {{ $u->createdBy?->name ?? '-' }}
                     </td>
+
+                    <td>
+                        @if($u->is_active)
+                            <span class="badge bg-success">Active</span>
+                        @else
+                            <span class="badge bg-secondary">Inactive</span>
+                        @endif
+                    </td>
+
                     <td>
                         <a href="{{ route('users.edit', $u) }}" class="btn btn-sm btn-outline-primary mb-2">Edit</a>
                         @if($u->is_active)
@@ -45,7 +65,9 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center text-muted py-4">No users found.</td></tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    No users found.
+                </td>
                 @endforelse
             </tbody>
         </table>

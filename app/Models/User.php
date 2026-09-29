@@ -13,17 +13,34 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'username', 'password', 'role_id', 'admin_scope', 'floor_id',
-        'division_id', 'department_id', 'phone', 'specialty', 'is_active',
+        'division_id', 'department_id', 'phone', 'specialty', 'is_active', 'failed_login_attempts', 'created_by',
     ];
 
     protected $hidden = ['password', 'remember_token'];
 
+    public function createdBy()
+    {
+        return $this->belongsTo(
+            User::class,
+            'created_by'
+        );
+    }
+
+    public function createdUsers()
+    {
+        return $this->hasMany(
+            User::class,
+            'created_by'
+        );
+    }
+    
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'failed_login_attempts' => 'integer',
         ];
     }
 

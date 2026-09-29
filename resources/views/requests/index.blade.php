@@ -240,8 +240,14 @@
                         Status
                     </th>
 
+                    @if(auth()->user()->isAssignOfficer())
+                        <th>
+                            Assigned Technician
+                        </th>
+                    @endif
+
                     <th>
-                        Date
+                        Due Date
                     </th>
 
                     <th></th>
@@ -257,7 +263,22 @@
                 @forelse($requests as $r)
 
                     <tr>
+                        @php
+                            /*
+                            * Latest technician assignment for this request.
+                            * Used by both Assigned Technician and Due Date.
+                            */
+                            $latestOfficerAssignment =
+                                $r->assignments
+                                    ->flatMap(function ($assignment) {
+                                        return $assignment->officerAssignments;
+                                    })
+                                    ->sortByDesc('id')
+                                    ->first();
 
+                            $assignedTechnician =
+                                $latestOfficerAssignment?->technicalOfficer;
+                        @endphp
 
                         {{-- Request Number --}}
                         <td>
@@ -288,16 +309,75 @@
 
                         </td>
 
+                        {{-- =====================================================
+                            ASSIGNED TECHNICIAN
+                        ===================================================== --}}
+                        @if(auth()->user()->isAssignOfficer())
 
-                        {{-- Date --}}
-                        <td class="small text-muted">
+                            <td>
 
-                            {{
-                                $r->created_at
-                                    ->format('d/m/Y')
-                            }}
+                                @php
 
-                        </td>
+                                    /*
+                                    * Get the most recent Technical Officer
+                                    * assigned to this request.
+                                    *
+                                    * OfficerAssignment history is used because
+                                    * assigned_to may change or be cleared later.
+                                    */
+
+                                    $latestOfficerAssignment =
+                                        $r->assignments
+                                            ->flatMap(function ($assignment) {
+                                                return $assignment->officerAssignments;
+                                            })
+                                            ->sortByDesc('id')
+                                            ->first();
+
+                                    $assignedTechnician =
+                                        $latestOfficerAssignment?->technicalOfficer;
+
+                                @endphp
+
+
+                                @if($assignedTechnician)
+
+                                    <span class="fw-semibold">
+                                        {{ $assignedTechnician->name }}
+                                    </span>
+
+                                @else
+
+                                    <span class="text-muted">
+                                        -
+                                    </span>
+
+                                @endif
+
+                            </td>
+
+                        @endif
+                        
+                            {{-- Due Date --}}
+                            <td class="small">
+
+                                @if(
+                                    isset($latestOfficerAssignment)
+                                    && $latestOfficerAssignment
+                                    && $latestOfficerAssignment->due_date
+                                )
+
+                                    {{ \Carbon\Carbon::parse(
+                                        $latestOfficerAssignment->due_date
+                                    )->format('d/m/Y') }}
+
+                                @else
+
+                                    <span class="text-muted">-</span>
+
+                                @endif
+
+                            </td>
 
 
                         {{-- View --}}

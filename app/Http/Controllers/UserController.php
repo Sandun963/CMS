@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -21,6 +22,7 @@ class UserController extends Controller
             'role',
             'floor',
             'division',
+            'createdBy',
         ]);
 
         if ($request->filled('role')) {
@@ -229,6 +231,19 @@ class UserController extends Controller
         */
 
         $data['is_active'] = true;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Record Account Creator
+        |--------------------------------------------------------------------------
+        |
+        | Store the ID of the currently authenticated Super Admin who creates
+        | this user account.
+        |
+        */
+
+        $data['created_by'] = Auth::id();
 
 
         /*
@@ -471,7 +486,23 @@ class UserController extends Controller
         $data['is_active'] =
             $request->boolean('is_active');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Reset Failed Login Attempts When Reactivating User
+        |--------------------------------------------------------------------------
+        */
 
+        if (
+            isset($data['is_active'])
+            &&
+            (bool) $data['is_active'] === true
+            &&
+            ! $user->is_active
+        ) {
+            $data['failed_login_attempts'] = 0;
+        }
+
+        
         /*
         |--------------------------------------------------------------------------
         | Update User

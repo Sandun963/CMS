@@ -42,6 +42,9 @@ class BreakdownRequestController extends Controller
             'requestedBy',
             'category',
             'assignedTo',
+
+            // Technician assignment history
+            'assignments.officerAssignments.technicalOfficer',
         ]);
 
 
