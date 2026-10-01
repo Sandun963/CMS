@@ -57,10 +57,7 @@ Route::post(
 |--------------------------------------------------------------------------
 */
 
-Route::middleware([
-    'auth',
-    'prevent-back-history',
-])->group(function () {
+Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
