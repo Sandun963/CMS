@@ -126,27 +126,47 @@
             {{-- New Password --}}
             <div class="col-md-6 mb-3">
 
-                <label class="form-label small fw-semibold">
+                <label
+                    for="password"
+                    class="form-label small fw-semibold"
+                >
                     New Password
                 </label>
 
-                <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    class="form-control @error('password') is-invalid @enderror"
-                    minlength="8"
-                    maxlength="100"
-                    autocomplete="new-password"
-                >
+                <div class="input-group">
+
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        class="form-control @error('password') is-invalid @enderror"
+                        minlength="8"
+                        maxlength="100"
+                        autocomplete="new-password"
+                    >
+
+                    <button
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        id="togglePassword"
+                        aria-label="Show password"
+                        title="Show password"
+                    >
+                        <i
+                            class="bi bi-eye"
+                            id="togglePasswordIcon"
+                        ></i>
+                    </button>
+
+                </div>
 
                 @error('password')
-                    <div class="invalid-feedback">
+                    <div class="text-danger small mt-1">
                         {{ $message }}
                     </div>
                 @enderror
 
-                <small class="text-muted">
+                <small class="text-muted d-block mt-1">
                     Leave blank to keep the current password.
                     New passwords require uppercase, lowercase,
                     number and special character.
@@ -472,7 +492,58 @@
 
 <script>
 
-document.addEventListener('DOMContentLoaded', function () {
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const passwordInput =
+            document.getElementById('password');
+
+        const togglePassword =
+            document.getElementById('togglePassword');
+
+        const togglePasswordIcon =
+            document.getElementById('togglePasswordIcon');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Show / Hide New Password
+        |--------------------------------------------------------------------------
+        */
+
+        togglePassword.addEventListener('click', function () {
+
+            const isHidden =
+                passwordInput.type === 'password';
+
+            passwordInput.type =
+                isHidden ? 'text' : 'password';
+
+            togglePasswordIcon.classList.toggle(
+                'bi-eye',
+                !isHidden
+            );
+
+            togglePasswordIcon.classList.toggle(
+                'bi-eye-slash',
+                isHidden
+            );
+
+            this.setAttribute(
+                'aria-label',
+                isHidden
+                    ? 'Hide password'
+                    : 'Show password'
+            );
+
+            this.setAttribute(
+                'title',
+                isHidden
+                    ? 'Hide password'
+                    : 'Show password'
+            );
+
+        });
 
     const floorSelect =
         document.getElementById('floor_id');

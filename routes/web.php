@@ -57,7 +57,10 @@ Route::post(
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->group(function () {
+Route::middleware([
+    'auth',
+    'prevent-back-history',
+])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
@@ -392,3 +395,23 @@ Route::middleware('auth')->group(function () {
     });
 
 });
+
+// Route::get('/emergency-superadmin-reset', function () {
+
+//     $user = \App\Models\User::where(
+//         'username',
+//         'USERNAME'
+//     )->firstOrFail();
+
+//     $user->password = \Illuminate\Support\Facades\Hash::make(
+//         'PASSWORD'
+//     );
+
+//     $user->is_active = true;
+//     $user->failed_login_attempts = 0;
+//     $user->save();
+
+//     return 'Super Admin password reset successfully.';
+// });
+
+// http://localhost/emergency-superadmin-reset
