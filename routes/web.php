@@ -397,11 +397,11 @@ Route::middleware('auth')->group(function () {
 
 //     $user = \App\Models\User::where(
 //         'username',
-//         'USERNAME'
+//         'superadmin'
 //     )->firstOrFail();
 
 //     $user->password = \Illuminate\Support\Facades\Hash::make(
-//         'PASSWORD'
+//         '1234'
 //     );
 
 //     $user->is_active = true;
@@ -411,4 +411,4 @@ Route::middleware('auth')->group(function () {
 //     return 'Super Admin password reset successfully.';
 // });
 
-// http://localhost/emergency-superadmin-reset
+// http://127.0.0.1:8000/emergency-superadmin-reset

@@ -8,11 +8,12 @@
 
 <div class="card stat-card p-4" style="max-width: 720px;">
 
-    <form
-        method="POST"
-        action="{{ route('requests.store') }}"
-        enctype="multipart/form-data"
-    >
+        <form
+            id="breakdownRequestForm"
+            method="POST"
+            action="{{ route('requests.store') }}"
+            enctype="multipart/form-data"
+        >
         @csrf
 
 
@@ -354,7 +355,62 @@
 
         </div>
 
+{{-- Submit Confirmation Modal --}}
+<div
+    class="modal fade"
+    id="submitConfirmationModal"
+    tabindex="-1"
+    aria-labelledby="submitConfirmationModalLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
 
+            <div class="modal-header">
+                <h5
+                    class="modal-title"
+                    id="submitConfirmationModalLabel"
+                >
+                    Confirm Request Submission
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                ></button>
+            </div>
+
+            <div class="modal-body">
+                Are you sure you want to submit this breakdown request?<br>
+                Please confirm that the entered information is correct.
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="confirmSubmitRequest"
+                >
+                    <i class="bi bi-check-circle me-1"></i>
+                    Yes, Submit Request
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script>
 
@@ -370,6 +426,75 @@ document.addEventListener(
 
         const areaSelect =
             document.getElementById('areaSelect');
+
+        const requestForm =
+            document.getElementById('breakdownRequestForm');
+
+        const confirmSubmitButton =
+            document.getElementById('confirmSubmitRequest');
+
+        const confirmationModalElement =
+            document.getElementById('submitConfirmationModal');
+
+        const confirmationModal =
+            new bootstrap.Modal(confirmationModalElement);
+
+        let submissionConfirmed = false;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Request Submission Confirmation
+        |--------------------------------------------------------------------------
+        */
+
+        requestForm.addEventListener(
+            'submit',
+            function (event) {
+
+                if (submissionConfirmed) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                /*
+                | Check HTML required fields first.
+                | Popup appears only when the form is valid.
+                */
+                if (!requestForm.checkValidity()) {
+
+                    requestForm.reportValidity();
+                    return;
+
+                }
+
+                confirmationModal.show();
+
+            }
+        );
+
+
+        confirmSubmitButton.addEventListener(
+            'click',
+            function () {
+
+                submissionConfirmed = true;
+
+                /*
+                | Prevent accidental double-click submission.
+                */
+                confirmSubmitButton.disabled = true;
+
+                confirmSubmitButton.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Submitting...';
+
+                confirmationModal.hide();
+
+                requestForm.requestSubmit();
+
+            }
+        );
 
 
         /*
