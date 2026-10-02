@@ -117,5 +117,17 @@
         );
     });
 </script>
+
+<script>
+    // Back/Forward cache (bfcache) restores pages without contacting the server.
+    // Force a real reload so the session is checked again.
+    window.addEventListener('pageshow', function (e) {
+        var nav = performance.getEntriesByType('navigation')[0];
+        if (e.persisted || (nav && nav.type === 'back_forward')) {
+            window.location.reload();
+        }
+    });
+</script>
+
 </body>
 </html>

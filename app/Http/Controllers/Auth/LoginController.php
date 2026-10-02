@@ -11,14 +11,21 @@ use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
+        // Reaching the login page while still authenticated (e.g. via the
+        // browser Back button) must END the session, not skip the login.
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            ActivityLog::log(null, Auth::id(), 'Logged out (returned to login page)');
+
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
         }
 
         return view('auth.login');
     }
+
 
 
     public function login(Request $request)
