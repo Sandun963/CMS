@@ -214,7 +214,6 @@
                 id="description"
                 class="form-control"
                 rows="4"
-                placeholder="Please Describe the Office Side"
             >{{ old('description') }}</textarea>
 
         </div>
@@ -383,8 +382,7 @@
             </div>
 
             <div class="modal-body">
-                Are you sure you want to submit this breakdown request?<br>
-                Please confirm that the entered information is correct.
+                Are you sure you want to submit this request?
             </div>
 
             <div class="modal-footer">
