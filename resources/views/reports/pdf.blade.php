@@ -562,7 +562,7 @@
                     style="text-align:center;"
                 >
 
-                    No breakdown requests found.
+                    No IT Issue requests found.
 
                 </td>
 

@@ -10,7 +10,7 @@
         <div>
             <h3 class="fw-bold mb-1">Super Admin Dashboard</h3>
             <p class="text-muted mb-0">
-                System-wide overview of users and breakdown requests.
+                System-wide overview of users and IT Issue requests.
             </p>
         </div>
     </div>
@@ -253,7 +253,7 @@
                                     <td colspan="6"
                                         class="text-center text-muted py-4">
 
-                                        No breakdown requests found.
+                                        No IT Issue requests found.
 
                                     </td>
                                 </tr>

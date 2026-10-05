@@ -16,7 +16,7 @@
         </h4>
 
         <div class="text-muted small">
-            Filter breakdown requests, preview results, and generate PDF reports.
+            Filter IT Issue requests, preview results, and generate PDF reports.
         </div>
 
     </div>
@@ -440,7 +440,7 @@
             <div>
 
                 <strong>
-                    Filtered Breakdown Requests
+                    Filtered IT Issue Requests
                 </strong>
 
                 <div class="text-muted small">
@@ -589,7 +589,7 @@
 
                                 <i class="bi bi-search fs-3 d-block mb-2"></i>
 
-                                No breakdown requests match the selected filters.
+                                No IT Issue requests match the selected filters.
 
                             </td>
 

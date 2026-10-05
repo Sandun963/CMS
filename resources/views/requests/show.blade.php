@@ -474,7 +474,7 @@
 
                         <p class="text-muted mb-3">
 
-                            This breakdown has been assigned to you.
+                            This IT issue has been assigned to you.
                             Click the button below when you start
                             working on it.
 
@@ -763,8 +763,8 @@
 
 
                     <p class="small text-muted">
-
-                        The technician reported this breakdown
+ 
+                        The technician reported this IT issue
                         as resolved. Please confirm whether
                         the issue has been resolved.
 

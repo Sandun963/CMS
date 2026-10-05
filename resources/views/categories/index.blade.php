@@ -12,7 +12,7 @@
         </h4>
 
         <p class="text-muted mb-0">
-            Manage breakdown request categories.
+            Manage IT Issue request categories.
         </p>
     </div>
 

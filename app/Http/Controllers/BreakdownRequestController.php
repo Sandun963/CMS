@@ -154,7 +154,7 @@ class BreakdownRequestController extends Controller
 
             abort(
                 403,
-                'You do not have access to breakdown requests.'
+                'You do not have access to IT Issue requests.'
             );
         }
 

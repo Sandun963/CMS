@@ -65,7 +65,7 @@
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
 
         <strong>
-            New Breakdown Requests
+            New IT Issue Requests
         </strong>
 
         <a
@@ -137,7 +137,7 @@
                             colspan="6"
                             class="text-center text-muted py-4"
                         >
-                            No new breakdown requests.
+                            No new IT Issue requests.
                         </td>
                     </tr>
 

@@ -46,7 +46,7 @@ class WorkReportController extends Controller
             $breakdownRequest->id,
             $user->id,
             'Started work',
-            'Technical Officer started working on the breakdown.'
+            'Technical Officer started working on the IT Issue.'
         );
 
         return back()->with(
