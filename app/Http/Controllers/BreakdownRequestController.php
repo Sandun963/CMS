@@ -1035,8 +1035,8 @@ class BreakdownRequestController extends Controller
      * Generate request/token number.
      *
      * Format:
-     * CMS/26/0001
-     * CMS/26/0002
+     * IRS/26/0001
+     * ISR/26/0002
      *
      * The sequence automatically restarts
      * from 0001 when a new year begins.
@@ -1096,12 +1096,12 @@ class BreakdownRequestController extends Controller
             | Synchronize With Existing Requests
             |--------------------------------------------------------------------------
             |
-            | This is important because the CMS already contains request numbers
+            | This is important because the IRS already contains request numbers
             | that were created before this counter table existed.
             |
             */
 
-            $prefix = "CMS/{$year}/";
+            $prefix = "IRS/{$year}/";
 
             $highestExistingNumber = BreakdownRequest::where(
                     'request_number',
@@ -1154,7 +1154,7 @@ class BreakdownRequestController extends Controller
             */
 
             return sprintf(
-                'CMS/%s/%04d',
+                'IRS/%s/%04d',
                 $year,
                 $nextNumber
             );

@@ -94,7 +94,7 @@
                         id="requestNumber"
                         class="form-control"
                         value="{{ request('request_number') }}"
-                        placeholder="e.g. CMS/26/0001"
+                        placeholder="e.g. IRS/26/0001"
                     >
 
                 </div>
