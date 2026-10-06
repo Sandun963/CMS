@@ -397,9 +397,11 @@
                             Forward this request to the IT Administrator for further review.
                         </p>
 
-                        <form method="POST"
-                            action="{{ route('escalations.forward', $breakdownRequest) }}">
-
+                        <form
+                            id="forwardToItAdminForm"
+                            method="POST"
+                            action="{{ route('escalations.forward', $breakdownRequest) }}"
+                        >
                             @csrf
 
                             <div class="mb-3">
@@ -409,20 +411,84 @@
                                     <span class="text-danger">*</span>
                                 </label>
 
-                                <textarea name="reason"
-                                        class="form-control"
-                                        rows="4"
-                                        required
-                                        placeholder="Explain why this request requires IT Administrator review.">{{ old('reason') }}</textarea>
+                                <textarea
+                                    name="reason"
+                                    class="form-control"
+                                    rows="4"
+                                    required
+                                    placeholder="Explain why this request requires IT Administrator review."
+                                >{{ old('reason') }}</textarea>
 
                             </div>
 
-                            <button type="submit" class="btn btn-warning">
+                            <button
+                                type="submit"
+                                class="btn btn-warning"
+                            >
                                 <i class="bi bi-arrow-up-right-circle me-1"></i>
                                 Forward to IT Admin
                             </button>
 
                         </form>
+
+                        {{-- Forward Confirmation Modal --}}
+                        <div
+                            class="modal fade"
+                            id="forwardConfirmationModal"
+                            tabindex="-1"
+                            aria-labelledby="forwardConfirmationModalLabel"
+                            aria-hidden="true"
+                        >
+                            <div class="modal-dialog modal-dialog-centered">
+
+                                <div class="modal-content">
+
+                                    <div class="modal-header">
+
+                                        <h5
+                                            class="modal-title"
+                                            id="forwardConfirmationModalLabel"
+                                        >
+                                            Confirm Forwarding
+                                        </h5>
+
+                                        <button
+                                            type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close"
+                                        ></button>
+
+                                    </div>
+
+                                    <div class="modal-body">
+                                        Are you sure you want to forward this request?
+                                    </div>
+
+                                    <div class="modal-footer">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary"
+                                            data-bs-dismiss="modal"
+                                        >
+                                            Cancel
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-warning"
+                                            id="confirmForwardButton"
+                                        >
+                                            Yes, Forward
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
 
                     @endif
                 </div>
@@ -1308,7 +1374,64 @@
 
 
     </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
+    const forwardForm =
+        document.getElementById('forwardToItAdminForm');
+
+    const modalElement =
+        document.getElementById('forwardConfirmationModal');
+
+    const confirmButton =
+        document.getElementById('confirmForwardButton');
+
+    if (!forwardForm || !modalElement || !confirmButton) {
+        return;
+    }
+
+    const confirmationModal =
+        new bootstrap.Modal(modalElement);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Intercept normal form submission
+    |--------------------------------------------------------------------------
+    */
+    forwardForm.addEventListener('submit', function (event) {
+
+        event.preventDefault();
+
+        // Check required fields first
+        if (!forwardForm.checkValidity()) {
+            forwardForm.reportValidity();
+            return;
+        }
+
+        confirmationModal.show();
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Confirm forwarding
+    |--------------------------------------------------------------------------
+    */
+    confirmButton.addEventListener('click', function () {
+
+        // Prevent double-click
+        confirmButton.disabled = true;
+
+        confirmButton.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-1"></span> Forwarding...';
+
+        // Submit directly without triggering submit event again
+        forwardForm.submit();
+
+    });
+
+});
+</script>
 
 </div>
 

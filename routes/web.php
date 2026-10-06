@@ -17,30 +17,18 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Root
-|--------------------------------------------------------------------------
-*/
-
-Route::get(
-    '/',
-    fn () => redirect()->route('login')
-);
-
-
-/*
-|--------------------------------------------------------------------------
 | Authentication
 |--------------------------------------------------------------------------
 */
 
 Route::get(
-    '/login',
+    '/',
     [LoginController::class, 'showLoginForm']
 )->name('login');
 
 
 Route::post(
-    '/login',
+    '/',
     [LoginController::class, 'login']
 )->name('login.attempt');
 
