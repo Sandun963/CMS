@@ -532,7 +532,28 @@
 
                 <td>
 
-                    {{ $request->assignedTo?->name ?? 'Not Assigned' }}
+                    @php
+                        $selectedTechnicianAssignment = null;
+
+                        if (!empty($filters['technician_id'])) {
+                            $selectedTechnicianAssignment =
+                                $request->assignments
+                                    ->flatMap(
+                                        fn ($assignment) =>
+                                            $assignment->officerAssignments
+                                    )
+                                    ->firstWhere(
+                                        'technical_officer_id',
+                                        (int) $filters['technician_id']
+                                    );
+                        }
+
+                        $displayTechnician =
+                            $selectedTechnicianAssignment?->technicalOfficer
+                            ?? $request->assignedTo;
+                    @endphp
+
+                    {{ $displayTechnician?->name ?? 'Not Assigned' }}
 
                 </td>
 

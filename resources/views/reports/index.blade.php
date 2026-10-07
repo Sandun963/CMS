@@ -539,10 +539,28 @@
                             {{-- Technical Officer --}}
                             <td>
 
-                                {{
-                                    $breakdownRequest->assignedTo?->name
-                                    ?? 'Unassigned'
-                                }}
+                                @php
+                                    $selectedTechnicianAssignment = null;
+
+                                    if (request('technician_id')) {
+                                        $selectedTechnicianAssignment =
+                                            $breakdownRequest->assignments
+                                                ->flatMap(
+                                                    fn ($assignment) =>
+                                                        $assignment->officerAssignments
+                                                )
+                                                ->firstWhere(
+                                                    'technical_officer_id',
+                                                    (int) request('technician_id')
+                                                );
+                                    }
+
+                                    $displayTechnician =
+                                        $selectedTechnicianAssignment?->technicalOfficer
+                                        ?? $breakdownRequest->assignedTo;
+                                @endphp
+
+                                {{ $displayTechnician?->name ?? 'Unassigned' }}
 
                             </td>
 

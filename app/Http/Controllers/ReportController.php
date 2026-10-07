@@ -163,6 +163,7 @@ class ReportController extends Controller
                 'category',
                 'requestedBy',
                 'assignedTo',
+                'assignments.officerAssignments.technicalOfficer',
             ]);
 
             $this->applyFilters(
@@ -222,6 +223,7 @@ class ReportController extends Controller
             'category',
             'requestedBy',
             'assignedTo',
+            'assignments.officerAssignments.technicalOfficer',
         ]);
 
         /*
@@ -555,15 +557,32 @@ class ReportController extends Controller
         |--------------------------------------------------------------------------
         | Technical Officer
         |--------------------------------------------------------------------------
+        |
+        | Filter using technician assignment history instead of only
+        | breakdown_requests.assigned_to.
+        |
+        | This ensures completed / closed requests previously handled
+        | by the selected technician are also included.
+        |
         */
 
         if ($request->filled('technician_id')) {
 
-            $query->where(
-                'assigned_to',
-                $request->technician_id
+            $technicianId = $request->technician_id;
+
+            $query->whereHas(
+                'assignments.officerAssignments',
+                function ($q) use ($technicianId) {
+
+                    $q->where(
+                        'technical_officer_id',
+                        $technicianId
+                    );
+
+                }
             );
         }
+
 
         /*
         |--------------------------------------------------------------------------
