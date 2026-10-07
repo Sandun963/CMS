@@ -611,6 +611,7 @@
 
 
                         <form
+                            id="workReportForm"
                             method="POST"
                             action="{{ route(
                                 'work-reports.store',
@@ -618,6 +619,65 @@
                             ) }}"
                             enctype="multipart/form-data"
                         >
+
+                        {{-- Work Report Confirmation Modal --}}
+                        <div
+                            class="modal fade"
+                            id="workReportConfirmationModal"
+                            tabindex="-1"
+                            aria-labelledby="workReportConfirmationModalLabel"
+                            aria-hidden="true"
+                        >
+                            <div class="modal-dialog modal-dialog-centered">
+
+                                <div class="modal-content">
+
+                                    <div class="modal-header">
+
+                                        <h5
+                                            class="modal-title"
+                                            id="workReportConfirmationModalLabel"
+                                        >
+                                            Confirm Submission
+                                        </h5>
+
+                                        <button
+                                            type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close"
+                                        ></button>
+
+                                    </div>
+
+                                    <div class="modal-body">
+                                        Are you sure you want to submit this work report?
+                                    </div>
+
+                                    <div class="modal-footer">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary"
+                                            data-bs-dismiss="modal"
+                                        >
+                                            Cancel
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-info"
+                                            id="confirmWorkReportButton"
+                                        >
+                                            Yes, Submit
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
 
                             @csrf
 
@@ -1007,8 +1067,17 @@
 
                             </p>
 
-
                             <p>
+                                <strong>
+                                    Remarks / Notes:
+                                </strong>
+
+                                {{
+                                    $oa->workReport
+                                        ->remarks
+                                    ?: '-'
+                                }}
+                            </p>
 
                                 <strong>
                                     Status:
@@ -1427,6 +1496,83 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Submit directly without triggering submit event again
         forwardForm.submit();
+
+    });
+
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const workReportForm =
+        document.getElementById('workReportForm');
+
+    const modalElement =
+        document.getElementById('workReportConfirmationModal');
+
+    const confirmButton =
+        document.getElementById('confirmWorkReportButton');
+
+    if (!workReportForm || !modalElement || !confirmButton) {
+        return;
+    }
+
+    const confirmationModal =
+        new bootstrap.Modal(modalElement);
+
+    let isSubmitting = false;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Show confirmation before submitting work report
+    |--------------------------------------------------------------------------
+    */
+    workReportForm.addEventListener('submit', function (event) {
+
+        if (isSubmitting) {
+            return;
+        }
+
+        event.preventDefault();
+
+        // Check required fields first
+        if (!workReportForm.checkValidity()) {
+            workReportForm.reportValidity();
+            return;
+        }
+
+        confirmationModal.show();
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Confirm submission
+    |--------------------------------------------------------------------------
+    */
+    confirmButton.addEventListener('click', function () {
+
+        if (isSubmitting) {
+            return;
+        }
+
+        isSubmitting = true;
+
+        // Prevent double-click submission
+        confirmButton.disabled = true;
+
+        confirmButton.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-1" ' +
+            'role="status" aria-hidden="true"></span> Submitting...';
+
+        /*
+         * Native form submission avoids reopening
+         * the confirmation modal.
+         */
+        workReportForm.submit();
 
     });
 

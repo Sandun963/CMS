@@ -40,7 +40,7 @@
                     <td>{{ $job->assignment->request->title }}</td>
                     <td><span class="badge {{ $job->assignment->request->statusBadgeClass() }}">{{ $job->assignment->request->status }}</span></td>
                     <td>{{ optional($job->due_date)->format('d/m/Y') ?? '-' }}</td>
-                    <td><a href="{{ route('requests.show', $job->assignment->request) }}" class="btn btn-sm btn-primary">Open</a></td>
+                    <td><a href="{{ route('requests.show', $job->assignment->request) }}" class="btn btn-sm btn-primary">View</a></td>
                 </tr>
                 @empty
                 <tr><td colspan="6" class="text-center text-muted py-4">No jobs assigned yet.</td></tr>
