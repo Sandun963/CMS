@@ -312,6 +312,7 @@
                     {{-- ============================= --}}
 
                     <form method="POST"
+                        id="assignTechnicalOfficerForm"
                         action="{{ route('officer-assignments.store', $breakdownRequest) }}">
 
                         @csrf
@@ -378,6 +379,62 @@
                         </div>
 
                     </form>
+
+                    {{-- Technical Officer Assignment Confirmation --}}
+                    <div
+                        class="modal fade"
+                        id="assignTechnicianConfirmationModal"
+                        tabindex="-1"
+                        aria-labelledby="assignTechnicianConfirmationModalLabel"
+                        aria-hidden="true"
+                    >
+                        <div class="modal-dialog modal-dialog-centered">
+
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <h5
+                                        class="modal-title"
+                                        id="assignTechnicianConfirmationModalLabel"
+                                    >
+                                        Confirm Assignment
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                    ></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    Are you sure you want to assign this technical officer?
+                                </div>
+
+                                <div class="modal-footer">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary"
+                                        id="confirmAssignTechnicianButton"
+                                    >
+                                        Yes, Assign
+                                    </button>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
 
 
                     {{-- ============================= --}}
@@ -1273,7 +1330,7 @@
 
                         <div class="text-muted">
 
-                            Managed / Assigned by
+                            Assigned by
                             Assign Officer
 
                         </div>
@@ -1443,6 +1500,8 @@
 
 
     </div>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -1579,6 +1638,74 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const assignTechnicianForm =
+        document.getElementById('assignTechnicalOfficerForm');
+
+    const assignTechnicianModalElement =
+        document.getElementById('assignTechnicianConfirmationModal');
+
+    const confirmAssignTechnicianButton =
+        document.getElementById('confirmAssignTechnicianButton');
+
+    if (
+        !assignTechnicianForm ||
+        !assignTechnicianModalElement ||
+        !confirmAssignTechnicianButton
+    ) {
+        return;
+    }
+
+    const assignTechnicianModal =
+        new bootstrap.Modal(assignTechnicianModalElement);
+
+    let isAssigningTechnician = false;
+
+    assignTechnicianForm.addEventListener(
+        'submit',
+        function (event) {
+
+            if (isAssigningTechnician) {
+                return;
+            }
+
+            event.preventDefault();
+
+            // Validate technician and due date first
+            if (!assignTechnicianForm.checkValidity()) {
+                assignTechnicianForm.reportValidity();
+                return;
+            }
+
+            assignTechnicianModal.show();
+        }
+    );
+
+    confirmAssignTechnicianButton.addEventListener(
+        'click',
+        function () {
+
+            if (isAssigningTechnician) {
+                return;
+            }
+
+            isAssigningTechnician = true;
+
+            // Prevent double-click
+            confirmAssignTechnicianButton.disabled = true;
+
+            confirmAssignTechnicianButton.innerHTML =
+                '<span class="spinner-border spinner-border-sm me-1" ' +
+                'role="status" aria-hidden="true"></span> Assigning...';
+
+            assignTechnicianForm.submit();
+        }
+    );
+
+});
+</script>
 </div>
 
 @endsection

@@ -1075,7 +1075,7 @@
 
                         <div class="text-muted">
 
-                            Managed / Assigned by Assign Officer
+                            Assigned by Assign Officer
 
                         </div>
 
