@@ -8,6 +8,7 @@ use App\Models\OfficerAssignment;
 use App\Models\WorkReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\NotDoneEmailService;
 
 class WorkReportController extends Controller
 {
@@ -63,6 +64,7 @@ class WorkReportController extends Controller
         OfficerAssignment $officerAssignment
     ) {
         $user = Auth::user();
+        $previousAssignmentStatus = $officerAssignment->status;
 
         abort_unless(
             $user->isTechnicalOfficer()
@@ -262,6 +264,19 @@ class WorkReportController extends Controller
             'Filed work report (Not Done)',
             $data['work_performed']
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Email responsible Assign Officer about Not Done case
+        |--------------------------------------------------------------------------
+        |
+        | Send only when the assignment first changes to Not Done.
+        |
+        */
+        if ($previousAssignmentStatus !== 'Not Done') {
+            NotDoneEmailService::send($officerAssignment);
+        }
+
 
         /*
         |--------------------------------------------------------------------------

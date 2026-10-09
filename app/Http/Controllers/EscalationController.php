@@ -8,6 +8,7 @@ use App\Models\Escalation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\EscalationEmailService;
 
 class EscalationController extends Controller
 {
@@ -72,7 +73,7 @@ class EscalationController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        Escalation::create([
+        $escalation = Escalation::create([
             'breakdown_request_id' =>
                 $breakdownRequest->id,
 
@@ -109,6 +110,13 @@ class EscalationController extends Controller
             'Forwarded to IT Administrator',
             $data['reason']
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Send escalation email to active IT Administrators
+        |--------------------------------------------------------------------------
+        */
+        EscalationEmailService::send($escalation);
 
         return redirect()
             ->route('requests.index')

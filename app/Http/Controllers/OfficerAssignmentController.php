@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Services\NewJobEmailService;
+
 use App\Models\ActivityLog;
 use App\Models\Assignment;
 use App\Models\BreakdownRequest;
 use App\Models\OfficerAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\NewJobEmailService;
 
 class OfficerAssignmentController extends Controller
 {
@@ -90,7 +91,7 @@ class OfficerAssignmentController extends Controller
         */
         NewJobEmailService::send($officerAssignment);
 
-        
+
         return back()->with(
             'success',
             'Request assigned to Technical Officer successfully.'

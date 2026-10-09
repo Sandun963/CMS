@@ -6,11 +6,21 @@ return [
         false
     ),
 
-        'new_job_email_enabled' => env(
+    'new_job_email_enabled' => env(
         'FIXIT_NEW_JOB_EMAIL_ENABLED',
         false
     ),
-    
+
+    'not_done_email_enabled' => env(
+        'FIXIT_NOT_DONE_EMAIL_ENABLED',
+        false
+    ),
+
+    'escalation_email_enabled' => env(
+        'FIXIT_ESCALATION_EMAIL_ENABLED',
+        false
+    ),     
+
     'test_recipient' => env(
         'FIXIT_EMAIL_TEST_RECIPIENT'
     ),
