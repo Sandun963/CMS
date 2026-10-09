@@ -9,6 +9,7 @@ use App\Models\WorkReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\NotDoneEmailService;
+use App\Services\ResolutionConfirmationEmailService;
 
 class WorkReportController extends Controller
 {
@@ -210,6 +211,7 @@ class WorkReportController extends Controller
         |
         */
 
+
         if ($data['completion_status'] === 'Done') {
 
             $officerAssignment->update([
@@ -227,11 +229,24 @@ class WorkReportController extends Controller
                 $data['work_performed']
             );
 
+            /*
+            |--------------------------------------------------------------------------
+            | Notify Ministry User to confirm resolution
+            |--------------------------------------------------------------------------
+            |
+            | Send only when the job first changes to Done.
+            |
+            */
+            if ($previousAssignmentStatus !== 'Done') {
+                ResolutionConfirmationEmailService::send($workReport);
+            }
+
             return back()->with(
                 'success',
                 'Work report submitted successfully. Request marked as resolved.'
             );
         }
+
 
         /*
         |--------------------------------------------------------------------------

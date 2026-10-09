@@ -9,6 +9,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\EscalationEmailService;
+use App\Services\EscalationDecisionEmailService;
 
 class EscalationController extends Controller
 {
@@ -277,6 +278,13 @@ class EscalationController extends Controller
             $data['admin_decision'],
             $data['admin_remarks']
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Notify the Ministry User of the IT Administrator's decision
+        |--------------------------------------------------------------------------
+        */
+        EscalationDecisionEmailService::send($escalation);
 
         /*
         |--------------------------------------------------------------------------

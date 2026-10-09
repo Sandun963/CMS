@@ -21,7 +21,20 @@ return [
         false
     ),     
 
+    'escalation_decision_email_enabled' => env(
+        'FIXIT_ESCALATION_DECISION_EMAIL_ENABLED',
+        false
+    ),
+
+    'resolution_confirmation_email_enabled' => env(
+        'FIXIT_RESOLUTION_CONFIRMATION_EMAIL_ENABLED',
+        false
+    ),
+
     'test_recipient' => env(
         'FIXIT_EMAIL_TEST_RECIPIENT'
     ),
+
+
+
 ];
