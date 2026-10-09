@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Services\NewJobEmailService;
 use App\Models\ActivityLog;
 use App\Models\Assignment;
 use App\Models\BreakdownRequest;
@@ -83,6 +83,14 @@ class OfficerAssignmentController extends Controller
             $officerAssignment->technicalOfficer->name ?? null
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Email notification to assigned Technical Officer
+        |--------------------------------------------------------------------------
+        */
+        NewJobEmailService::send($officerAssignment);
+
+        
         return back()->with(
             'success',
             'Request assigned to Technical Officer successfully.'

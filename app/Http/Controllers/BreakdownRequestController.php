@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use App\Services\NewRequestEmailService;
 
 class BreakdownRequestController extends Controller
 {
@@ -743,6 +744,12 @@ class BreakdownRequestController extends Controller
             $breakdown->title
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Notify all active Assign Officers about the new request
+        |--------------------------------------------------------------------------
+        */
+        NewRequestEmailService::send($breakdown);
 
         /*
         |--------------------------------------------------------------------------
