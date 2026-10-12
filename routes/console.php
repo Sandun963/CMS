@@ -12,3 +12,8 @@ Schedule::command('fixit:send-technical-overdue')
     ->dailyAt('09:30')
     ->timezone('Asia/Colombo')
     ->withoutOverlapping();
+
+Schedule::command('fixit:send-assign-overdue')
+    ->dailyAt('09:30')
+    ->timezone('Asia/Colombo')
+    ->withoutOverlapping();
