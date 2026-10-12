@@ -31,6 +31,11 @@ return [
         false
     ),
 
+    'technical_overdue_email_enabled' => env(
+        'FIXIT_TECHNICAL_OVERDUE_EMAIL_ENABLED',
+        false
+    ),
+    
     'test_recipient' => env(
         'FIXIT_EMAIL_TEST_RECIPIENT'
     ),
