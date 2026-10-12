@@ -17,3 +17,8 @@ Schedule::command('fixit:send-assign-overdue')
     ->dailyAt('09:30')
     ->timezone('Asia/Colombo')
     ->withoutOverlapping();
+
+Schedule::command('fixit:send-admin-overdue-summary')
+    ->dailyAt('09:30')
+    ->timezone('Asia/Colombo')
+    ->withoutOverlapping();
