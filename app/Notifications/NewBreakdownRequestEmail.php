@@ -29,7 +29,7 @@ class NewBreakdownRequestEmail extends Notification
                 'FixIT - New IT Request - ' .
                 $breakdown->request_number
             )
-            ->greeting('Dear Assign Officer,')
+            ->greeting('Dear ' . ($notifiable->name ?? 'Assign Officer') . ',')
             ->line(
                 'A new IT issue request has been submitted and is awaiting assignment.'
             )

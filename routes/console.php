@@ -9,16 +9,16 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('fixit:send-technical-overdue')
-    ->dailyAt('09:35')
+    ->dailyAt('10:00')
     ->timezone('Asia/Colombo')
     ->withoutOverlapping();
 
 Schedule::command('fixit:send-assign-overdue')
-    ->dailyAt('09:35')
+    ->dailyAt('10:00')
     ->timezone('Asia/Colombo')
     ->withoutOverlapping();
 
 Schedule::command('fixit:send-admin-overdue-summary')
-    ->dailyAt('09:35')
+    ->dailyAt('10:00')
     ->timezone('Asia/Colombo')
     ->withoutOverlapping();
