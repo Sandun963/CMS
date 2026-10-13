@@ -1296,10 +1296,11 @@
                             ·
 
                             {{
-                                $log
-                                    ->created_at
-                                    ->diffForHumans()
+                                $log->created_at->format('F j')
                             }}
+                            ({{
+                                $log->created_at->diffForHumans()
+                            }})
 
                         </div>
 
