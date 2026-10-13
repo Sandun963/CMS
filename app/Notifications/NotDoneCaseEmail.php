@@ -81,6 +81,7 @@ class NotDoneCaseEmail extends Notification
 
         return $mail->salutation(
             'FixIT - IT Issue Resolution System'
-        );
+        )
+            ->markdown('emails.fixit-notification');
     }
 }

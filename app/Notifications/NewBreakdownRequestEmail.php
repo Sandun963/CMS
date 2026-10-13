@@ -46,6 +46,7 @@ class NewBreakdownRequestEmail extends Notification
             ->line(
                 'Please review the request and assign a Technical Officer.'
             )
-            ->salutation('FixIT - IT Issue Resolution System');
+            ->salutation('FixIT - IT Issue Resolution System')
+            ->markdown('emails.fixit-notification');
     }
 }

@@ -84,6 +84,7 @@ class TechnicalOfficerOverdueEmail extends Notification
             )
             ->salutation(
                 'FixIT - IT Issue Resolution System'
-            );
+            )
+            ->markdown('emails.fixit-notification');
     }
 }
