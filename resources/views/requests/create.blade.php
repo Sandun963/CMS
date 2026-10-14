@@ -473,26 +473,40 @@ document.addEventListener(
         );
 
 
+
         confirmSubmitButton.addEventListener(
             'click',
             function () {
 
+                // Prevent duplicate submissions
+                if (submissionConfirmed) {
+                    return;
+                }
+
+                // Confirm the form is valid
+                if (!requestForm.checkValidity()) {
+                    confirmationModal.hide();
+                    requestForm.reportValidity();
+                    return;
+                }
+
                 submissionConfirmed = true;
 
-                /*
-                | Prevent accidental double-click submission.
-                */
+                // Disable the confirmation button
                 confirmSubmitButton.disabled = true;
 
+                // Display loading spinner and message
                 confirmSubmitButton.innerHTML =
-                    '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Submitting...';
+                    '<span class="spinner-border spinner-border-sm me-1" ' +
+                    'role="status" aria-hidden="true"></span> Submitting...';
 
-                confirmationModal.hide();
-
-                requestForm.requestSubmit();
+                // Keep the modal visible while submitting
+                // Use native submission to avoid reopening the modal
+                requestForm.submit();
 
             }
         );
+
 
 
         /*

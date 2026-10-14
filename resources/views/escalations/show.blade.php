@@ -717,13 +717,10 @@
 
                 <div class="card-body">
 
-
                     <form
+                        id="itAdminDecisionForm"
                         method="POST"
-                        action="{{ route(
-                            'escalations.decide',
-                            $escalation
-                        ) }}"
+                        action="{{ route('escalations.decide', $escalation) }}"
                     >
 
                         @csrf
@@ -814,6 +811,59 @@
 
                     </form>
 
+
+                        <!-- IT Administrator Decision Confirmation Modal -->
+                        <div class="modal fade"
+                            id="itAdminDecisionModal"
+                            tabindex="-1"
+                            aria-labelledby="itAdminDecisionModalLabel"
+                            aria-hidden="true"
+                            data-bs-backdrop="static"
+                            data-bs-keyboard="false">
+
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+
+                                    <div class="modal-header">
+                                        <h5 class="modal-title fw-semibold"
+                                            id="itAdminDecisionModalLabel">
+                                            Confirm IT Administrator Decision
+                                        </h5>
+
+                                        <button type="button"
+                                                class="btn-close"
+                                                data-bs-dismiss="modal"
+                                                aria-label="Close"
+                                                data-decision-cancel>
+                                        </button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        Are you sure you want to submit this decision?
+                                    </div>
+
+                                    <div class="modal-footer">
+
+                                        <button type="button"
+                                                class="btn btn-outline-secondary"
+                                                data-bs-dismiss="modal"
+                                                data-decision-cancel>
+                                            Cancel
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn btn-primary"
+                                                id="confirmITAdminDecisionButton">
+
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            Yes, Submit Decision
+
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                 </div>
 
@@ -1332,6 +1382,110 @@
 
 
 </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const decisionForm =
+        document.getElementById('itAdminDecisionForm');
+
+    const modalElement =
+        document.getElementById('itAdminDecisionModal');
+
+    const confirmButton =
+        document.getElementById('confirmITAdminDecisionButton');
+
+    if (!decisionForm || !modalElement || !confirmButton) {
+        return;
+    }
+
+    const decisionModal =
+        bootstrap.Modal.getOrCreateInstance(modalElement);
+
+    const cancelButtons =
+        modalElement.querySelectorAll('[data-decision-cancel]');
+
+    const originalButtonHTML = confirmButton.innerHTML;
+
+    let confirmed = false;
+
+    let submitting = false;
+
+    // Show confirmation only after form validation passes.
+    decisionForm.addEventListener('submit', function (event) {
+
+        if (confirmed) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (!decisionForm.reportValidity()) {
+            return;
+        }
+
+        decisionModal.show();
+
+    });
+
+    // Confirm and submit the decision.
+    confirmButton.addEventListener('click', function () {
+
+        if (submitting) {
+            return;
+        }
+
+        if (!decisionForm.reportValidity()) {
+            decisionModal.hide();
+            return;
+        }
+
+        confirmed = true;
+        submitting = true;
+
+        // Show the loading spinner.
+        confirmButton.disabled = true;
+
+        confirmButton.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-2" ' +
+            'role="status" aria-hidden="true"></span>' +
+            'Submitting...';
+
+        // Prevent closing the popup during submission.
+        cancelButtons.forEach(function (button) {
+            button.disabled = true;
+        });
+
+        // Keep the modal open and submit through normal
+        // browser form processing.
+        decisionForm.requestSubmit();
+
+    });
+
+    // Restore controls if the page is restored by browser history.
+    window.addEventListener('pageshow', function (event) {
+
+        if (!event.persisted) {
+            return;
+        }
+
+        confirmed = false;
+        submitting = false;
+
+        confirmButton.disabled = false;
+        confirmButton.innerHTML = originalButtonHTML;
+
+        cancelButtons.forEach(function (button) {
+            button.disabled = false;
+        });
+
+        decisionModal.hide();
+
+    });
+
+});
+</script>
 
 
 @endsection
