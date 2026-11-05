@@ -829,6 +829,9 @@
                                         class="form-select"
                                         required
                                     >
+                                        <option value="" selected disabled>
+                                            -- Select Completion Status --
+                                        </option>
 
                                         <option value="Done">
                                             Done
@@ -837,7 +840,6 @@
                                         <option value="Not Done">
                                             Not Done
                                         </option>
-
                                     </select>
 
                                 </div>
