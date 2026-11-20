@@ -95,6 +95,12 @@ class WorkReportController extends Controller
                 'string',
             ],
 
+            'serial_number' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
             'completion_status' => [
                 'required',
                 'in:Done,Not Done',
@@ -133,6 +139,9 @@ class WorkReportController extends Controller
 
                 'parts_used' =>
                     $data['parts_used'] ?? null,
+
+                'serial_number' =>
+                    $data['serial_number'] ?? null,
 
                 'completion_status' =>
                     $data['completion_status'],

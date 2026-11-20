@@ -8,7 +8,7 @@ class WorkReport extends Model
 {
     protected $fillable = [
         'officer_assignment_id', 'problem_identified', 'work_performed',
-        'parts_used', 'completion_status', 'remarks', 'attended_at', 'reported_at',
+        'parts_used', 'serial_number', 'completion_status', 'remarks', 'attended_at', 'reported_at',
     ];
 
     protected function casts(): array

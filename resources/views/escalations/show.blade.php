@@ -361,6 +361,13 @@
                             </p>
 
 
+                            
+                            <p>
+                                <strong>Serial Number:</strong>
+                                {{ $report->serial_number ?: '-' }}
+                            </p>
+
+
 
                             {{-- Remarks --}}
                             <p>

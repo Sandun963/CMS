@@ -793,7 +793,6 @@
                                 <label class="form-label small">
 
                                     Parts Used
-                                    (optional)
 
                                 </label>
 
@@ -806,6 +805,22 @@
 
                             </div>
 
+                            {{-- Serial Number --}}
+                            <div class="mb-2">
+
+                                <label class="form-label small">
+                                    Serial Number
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="serial_number"
+                                    class="form-control"
+                                    maxlength="255"
+                                    value="{{ old('serial_number') }}"
+                                >
+
+                            </div>
 
                             <div class="row g-2">
 
@@ -1124,6 +1139,11 @@
                                     ?: '-'
                                 }}
 
+                            </p>
+
+                            <p>
+                                <strong>Serial Number:</strong>
+                                {{ $oa->workReport->serial_number ?: '-' }}
                             </p>
 
                             <p>
