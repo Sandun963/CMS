@@ -44,7 +44,7 @@ class EscalationDecisionEmail extends Notification
                 ','
             )
             ->line(
-                'The IT Administrator has reviewed the escalated IT issue you submitted.'
+                'The escalated IT issue you submitted has been reviewed by an authorized officer.'
             )
             ->line(
                 'Request Number: ' .
@@ -84,7 +84,7 @@ class EscalationDecisionEmail extends Notification
             );
         } elseif ($status === 'Closed') {
             $mail->line(
-                'Your request has been closed following the IT Administrator review.'
+                'Your request has been closed following escalation review.'
             );
         }
 

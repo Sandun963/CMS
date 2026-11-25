@@ -70,6 +70,12 @@ class User extends Authenticatable
             && $this->admin_scope === 'IT';
     }
 
+    public function canManageEscalations(): bool
+    {
+        return $this->isItAdministrator()
+            || $this->isAssignOfficer();
+    }
+    
     public function isAssignOfficer(): bool
     {
         return $this->role?->code === Role::ASSIGN_OFFICER;

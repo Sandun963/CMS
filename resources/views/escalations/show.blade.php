@@ -716,7 +716,7 @@
                 <div class="card-header bg-white">
 
                     <strong>
-                        IT Administrator Decision
+                        Escalation Decision
                     </strong>
 
                 </div>
@@ -819,7 +819,7 @@
                     </form>
 
 
-                        <!-- IT Administrator Decision Confirmation Modal -->
+                        <!-- Escalation Decision Confirmation Modal -->
                         <div class="modal fade"
                             id="itAdminDecisionModal"
                             tabindex="-1"
@@ -834,7 +834,7 @@
                                     <div class="modal-header">
                                         <h5 class="modal-title fw-semibold"
                                             id="itAdminDecisionModalLabel">
-                                            Confirm IT Administrator Decision
+                                            Confirm Escalation Decision
                                         </h5>
 
                                         <button type="button"
@@ -892,7 +892,7 @@
                     >
 
                         <strong>
-                            IT Administrator Decision
+                            Escalation Decision
                         </strong>
 
 

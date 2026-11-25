@@ -305,40 +305,35 @@ Route::middleware('auth')->group(function () {
     });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Administrator
-    |--------------------------------------------------------------------------
-    |
-    | Includes the IT Administrator.
-    |
-    */
+/*
+|--------------------------------------------------------------------------
+| Administrator - Reports
+|--------------------------------------------------------------------------
+*/
 
-    Route::middleware('role:administrator')->group(function () {
+Route::middleware('role:administrator')->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Reports
-        |--------------------------------------------------------------------------
-        */
+    Route::get(
+        '/reports',
+        [ReportController::class, 'index']
+    )->name('reports.index');
 
-        Route::get(
-            '/reports',
-            [ReportController::class, 'index']
-        )->name('reports.index');
+    Route::get(
+        '/reports/export/pdf',
+        [ReportController::class, 'exportPdf']
+    )->name('reports.export.pdf');
+
+});
 
 
-        Route::get(
-            '/reports/export/pdf',
-            [ReportController::class, 'exportPdf']
-        )->name('reports.export.pdf');
+/*
+|--------------------------------------------------------------------------
+| Escalated Cases - IT Administrator and Assign Officer
+|--------------------------------------------------------------------------
+*/
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Escalated Cases
-        |--------------------------------------------------------------------------
-        */
+Route::middleware('role:administrator,assign_officer')
+    ->group(function () {
 
         Route::get(
             '/escalations',
@@ -355,22 +350,10 @@ Route::middleware('auth')->group(function () {
             [EscalationController::class, 'show']
         )->name('escalations.show');
 
-
         Route::post(
             '/escalations/{escalation}/decision',
             [EscalationController::class, 'decide']
         )->name('escalations.decide');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Formal Escalation Report PDF
-        |--------------------------------------------------------------------------
-        |
-        | EscalationController also verifies that the IT Administrator
-        | has completed the decision before allowing PDF generation.
-        |
-        */
 
         Route::get(
             '/escalations/{escalation}/formal-report/pdf',

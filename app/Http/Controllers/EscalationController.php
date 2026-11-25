@@ -8,6 +8,7 @@ use App\Models\Escalation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Services\EscalationEmailService;
 use App\Services\EscalationDecisionEmailService;
 
@@ -136,7 +137,7 @@ class EscalationController extends Controller
         $user = Auth::user();
 
         abort_unless(
-            $user->isItAdministrator(),
+            $user->canManageEscalations(),
             403
         );
 
@@ -166,7 +167,7 @@ class EscalationController extends Controller
         $user = Auth::user();
 
         abort_unless(
-            $user->isItAdministrator(),
+            $user->canManageEscalations(),
             403
         );
 
@@ -182,7 +183,8 @@ class EscalationController extends Controller
 
 
     /**
-     * IT Administrator submits final decision.
+     * IT Administrator or Assign Officer submits
+     * the final escalation decision.
      */
     public function decide(
         Request $request,
@@ -191,14 +193,8 @@ class EscalationController extends Controller
         $user = Auth::user();
 
         abort_unless(
-            $user->isItAdministrator(),
+            $user->canManageEscalations(),
             403
-        );
-
-        abort_if(
-            $escalation->status === 'Reviewed',
-            400,
-            'This escalation has already been reviewed.'
         );
 
         $data = $request->validate([
@@ -206,7 +202,6 @@ class EscalationController extends Controller
                 'required',
                 'in:Outsource Recommended,Closed - Unable to Resolve',
             ],
-
             'admin_remarks' => [
                 'required',
                 'string',
@@ -214,98 +209,61 @@ class EscalationController extends Controller
             ],
         ]);
 
-        $breakdownRequest =
-            $escalation->breakdownRequest;
+        $escalation = DB::transaction(function () use (
+            $escalation,
+            $user,
+            $data
+        ) {
+            // Lock the record to prevent duplicate decisions.
+            $locked = Escalation::query()
+                ->lockForUpdate()
+                ->findOrFail($escalation->id);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Map Admin Decision -> Request Status
-        |--------------------------------------------------------------------------
-        */
+            abort_unless(
+                $locked->status === 'Pending Review',
+                400,
+                'This escalation has already been reviewed.'
+            );
 
-        $requestStatus =
-            $data['admin_decision']
-                === 'Outsource Recommended'
-                ? 'Outsource Required'
-                : 'Closed';
+            $breakdownRequest = $locked->breakdownRequest;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Update Escalation
-        |--------------------------------------------------------------------------
-        */
+            // Preserve the existing status mapping.
+            $requestStatus =
+                $data['admin_decision'] === 'Outsource Recommended'
+                    ? 'Outsource Required'
+                    : 'Closed';
 
-        $escalation->update([
-            'status' =>
-                'Reviewed',
+            $locked->update([
+                'status' => 'Reviewed',
+                'admin_decision' => $data['admin_decision'],
+                'admin_remarks' => $data['admin_remarks'],
+                'reviewed_by' => $user->id,
+                'reviewed_at' => now(),
+            ]);
 
-            'admin_decision' =>
-                $data['admin_decision'],
+            $breakdownRequest->update([
+                'status' => $requestStatus,
+                'assigned_to' => null,
+            ]);
 
-            'admin_remarks' =>
-                $data['admin_remarks'],
-
-            'reviewed_by' =>
+            ActivityLog::log(
+                $breakdownRequest->id,
                 $user->id,
+                $data['admin_decision'],
+                $data['admin_remarks']
+            );
 
-            'reviewed_at' =>
-                now(),
-        ]);
+            return $locked;
+        });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Update Breakdown Request
-        |--------------------------------------------------------------------------
-        */
-
-        $breakdownRequest->update([
-            'status' =>
-                $requestStatus,
-
-            'assigned_to' =>
-                null,
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Activity Log
-        |--------------------------------------------------------------------------
-        */
-
-        ActivityLog::log(
-            $breakdownRequest->id,
-            $user->id,
-            $data['admin_decision'],
-            $data['admin_remarks']
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Notify the Ministry User of the IT Administrator's decision
-        |--------------------------------------------------------------------------
-        */
+        // Send the existing decision notification.
         EscalationDecisionEmailService::send($escalation);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Return to same escalation
-        |--------------------------------------------------------------------------
-        |
-        | Important:
-        | We return to the escalation details page instead of the list.
-        | The user can immediately see the saved decision and the
-        | Formal PDF Report button.
-        |
-        */
-
         return redirect()
-            ->route(
-                'escalations.show',
-                $escalation
-            )
+            ->route('escalations.show', $escalation)
             ->with(
                 'success',
-                'IT Administrator decision saved successfully. The formal report is now available.'
+                'Escalation decision saved successfully. The formal report is now available.'
             );
     }
 
@@ -328,10 +286,9 @@ class EscalationController extends Controller
         */
 
         abort_unless(
-            $user->isItAdministrator(),
+            $user->canManageEscalations(),
             403
         );
-
         /*
         |--------------------------------------------------------------------------
         | Decision must be completed first
@@ -343,7 +300,7 @@ class EscalationController extends Controller
             && !empty($escalation->admin_decision)
             && !empty($escalation->reviewed_at),
             403,
-            'The formal report is available only after the IT Administrator decision has been submitted.'
+            'The formal report is available only after the escalation decision has been submitted.'
         );
 
         /*
@@ -474,7 +431,7 @@ class EscalationController extends Controller
         $user = Auth::user();
 
         abort_unless(
-            $user->isItAdministrator(),
+            $user->canManageEscalations(),
             403
         );
 

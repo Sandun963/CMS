@@ -545,7 +545,18 @@
 
                     </li>
 
+                {{-- Escalated Cases --}}
+                <li class="nav-item">
+                    <a
+                        class="nav-link {{ request()->routeIs('escalations.*') ? 'active' : '' }}"
+                        href="{{ route('escalations.index') }}"
+                    >
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Escalated Cases
+                    </a>
+                </li>
 
+                
                 {{-- ====================================================== --}}
                 {{-- TECHNICAL OFFICER --}}
                 {{-- ====================================================== --}}
